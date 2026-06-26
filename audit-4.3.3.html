@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profit Leak Quick Check – Audits</title>
+<style>
+:root{
+  --gold:#b7a36a;
+  --black:#000000;
+  --grey:#e6e4df;
+  --bg:#f6f3ec;
+  --panel:#ffffff;
+  --line:#d7d2c5;
+  --text:#111111;
+  --muted:#7a746a;
+  --accent-primary:var(--gold);
+  --accent-secondary:#1f1f1f;
+  --good:#2f8f5b;
+  --warn:#c08a2c;
+  --bad:#b85757;
+  --shadow-soft:0 16px 40px rgba(0,0,0,.10);
+  --radius-lg:18px;
+  --titleFont:"Century Gothic","Trebuchet MS",system-ui,sans-serif;
+  --bodyFont:Calibri,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:var(--bodyFont);
+  background:linear-gradient(180deg,#f7f4ee 0%, #f0ece4 100%);
+  color:var(--text);
+}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 16px 40px}
+h1{
+  font-family:var(--titleFont);
+  font-size:clamp(28px,3vw,38px);
+  margin:0 0 6px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.sub{
+  margin:0 0 18px;
+  color:var(--muted);
+  font-size:14px;
+}
+.panel{
+  background:var(--panel);
+  border-radius:18px;
+  padding:10px 12px 18px;
+  box-shadow:0 16px 40px rgba(0,0,0,.10);
+  border:1px solid rgba(0,0,0,.04);
+  margin-bottom:18px;
+}
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:4px;
+}
+.btn{
+  border-radius:999px;
+  border:none;
+  padding:8px 14px;
+  cursor:pointer;
+  font-family:var(--titleFont);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-weight:700;
+  background:#000;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
+  transition:box-shadow .18s ease, transform .18s ease, opacity .18s ease;
+}
+.btn.gold{background:var(--gold);color:#000;}
+.btn.danger{
+  background:var(--bad);
+  color:#fff;
+  box-shadow:0 6px 14px rgba(184,87,87,.5);
+  font-size:11px;
+  padding:6px 10px;
+}
+.btn.small{
+  font-size:11px;
+  padding:3px 7px;
+  box-shadow:none;
+}
+
+/* colonna AKTIONEN più stretta */
+th:nth-child(11), td:nth-child(11){
+  max-width:80px;
+  width:80px;
+}
+
+/* wrapper verticale per i bottoni azione */
+.actions-wrapper{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:center;
+}
+.btn[disabled]{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn:hover:not([disabled]){
+  transform:translateY(-1px);
+  box-shadow:0 12px 24px rgba(0,0,0,.24);
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:11px;
+  background:#f0ece4;
+  color:#7a746a;
+}
+.table-wrap{
+  overflow:auto;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:#fff;
+  max-height:64vh;
+}
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:1180px;
+  font-size:13px;
+}
+thead{
+  position:sticky;
+  top:0;
+  background:#f3EFE6;
+  z-index:5;
+}
+th,td{
+  padding:8px 10px;
+  border-bottom:1px solid #ece7da;
+  text-align:left;
+  vertical-align:top;
+}
+th{
+  font-family:var(--titleFont);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#7a746a;
+  border-bottom:1px solid #d7d1c0;
+  background:#f3efe6;
+  white-space:nowrap;
+}
+th.sortable{
+  cursor:pointer;
+  user-select:none;
+  position:relative;
+  padding-right:20px;
+}
+th.sortable::after{
+  content:"↕";
+  position:absolute;
+  right:6px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:11px;
+  opacity:.5;
+}
+
+/* colonne più strette */
+th:nth-child(1), td:nth-child(1){
+  max-width:80px;
+  width:80px;
+}
+th:nth-child(2), td:nth-child(2){
+  max-width:119px;
+  width:119px;
+}
+th:nth-child(3), td:nth-child(3){
+  max-width:115px;
+  width:115px;
+}
+th:nth-child(6), td:nth-child(6){
+  max-width:190px;
+  width:190px;
+}
+th:nth-child(8), td:nth-child(8){
+  max-width:120px;
+  width:120px;
+}
+
+/* min-width globale ridotta */
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:1180px;
+  font-size:13px;
+}
+
+th.sortable.sort-asc::after{content:"↑";opacity:1;color:#000;}
+th.sortable.sort-desc::after{content:"↓";opacity:1;color:#000;}
+tr:nth-child(even) td{background:#fbf9f4;}
+tr:hover td{background:#f9f6ef;cursor:pointer;}
+
+.pill{
+  display:inline-flex;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:11px;
+  background:#111;
+  color:#fff;
+}
+.pill.good{background:#2f8f5b;}
+.pill.warn{background:#c08a2c;}
+.pill.bad{background:#b85757;}
+.muted{color:#7a746a;font-size:11px;}
+.small{font-size:11px;}
+.status-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+}
+input[type="search"]{
+  border-radius:999px;
+  border:1px solid var(--line);
+  padding:7px 10px;
+  font-size:13px;
+  min-width:200px;
+  outline:none;
+}
+input[type="search"]:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(183,163,106,.25);
+}
+.tag{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:11px;
+  border:1px solid #ddd2b7;
+  background:#f7f1df;
+  color:#705b1a;
+}
+
+.leak-list{
+  min-width:240px;
+}
+
+/* colonna: tutte le righe leak una sotto l’altra */
+.leak-stack{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+/* una riga: testo + numero */
+/* una riga: testo + numero */
+.leak-pill{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* testo leak: larghezza fissa -> tutti i numeri si allineano */
+.leak-label{
+  font-size:11px;
+  color:#705b1a;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid #ddd2b7;
+  background:#f7f1df;
+  white-space:nowrap;
+  flex:0 0 130px;        /* REGOLA CHIAVE: stessa larghezza per tutte */
+}
+
+/* contenitore numeri: solo per “spingere” il numero a destra se vuoi */
+.leak-level-wrapper{
+  min-width:28px;
+  display:flex;
+  justify-content:flex-start; /* o flex-end, come preferisci */
+}
+
+/* pill numero */
+.level-pill{
+  min-width:24px;
+  height:20px;
+  padding:0 6px;
+  border-radius:999px;
+  border:none;
+  font-size:11px;
+  font-weight:600;
+  font-family:var(--titleFont);
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:default;
+  color:#fff;
+}
+.level-1{ background:var(--good); }
+.level-2{ background:var(--warn); }
+.level-3{ background:var(--bad); }
+.level-4{ background:#7a3b3b; }
+
+/* modal fix */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: none;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal[data-visible="true"]{
+  display:flex;
+}
+#detailContent{
+  margin-top:40px;
+  margin-bottom:40px;
+  max-width:760px;
+  width:100%;
+  max-height:calc(100vh - 80px);
+  overflow-y:auto;
+  box-shadow:0 16px 40px rgba(0,0,0,.10);
+  background:#fff;
+}
+
+/* modalità PDF: niente limite di altezza né scroll interno */
+#detailContent.pdf-mode{
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+#detailCard{
+  margin-bottom:12px;
+  line-height:1.5;
+  font-size:13px;
+}
+#detailCard > div{margin-bottom:8px;}
+.json-pre{
+  font-family:monospace;
+  font-size:11px;
+  white-space:pre-wrap;
+  margin:0;
+  word-break:break-word;
+}
+.follow-select{
+  font-size:11px;
+  padding:3px 4px;
+}
+.follow-input{
+  font-size:11px;
+  padding:3px 4px;
+  margin-top:4px;
+  width:120px;
+}
+#killAllBtn{
+  position:fixed;
+  bottom:10px;
+  right:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
+  font-size:10px;
+  padding:4px 8px;
+  background:#b85757;
+  color:#fff;
+}
+#killAllBtn.visible{
+  opacity:0.9;
+  pointer-events:auto;
+}
+
+/* TOAST */
+#toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:12px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
+  z-index:1200;
+}
+#toast.visible{
+  opacity:0.95;
+  transform:translateX(-50%) translateY(-4px);
+}
+
+/* blocchi domanda/risposta non spezzati in PDF */
+.answer-block{
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* in stampa non mostrare la X */
+@media print{
+  .detail-close{
+    display:none !important;
+  }
+}
+
+@media (max-width:700px){
+  .controls{flex-direction:column;align-items:flex-start;}
+  input[type="search"]{width:100%;}
+  table{min-width:auto;font-size:12px;}
+  th,td{padding:6px 4px; font-size:12px;}
+  #detailContent{max-width:calc(100vw - 40px); padding:12px;}
+  #detailCard{font-size:12px;}
+  .leak-list{min-width:180px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header style="margin-bottom:16px;">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;">
+<img
+  src="https://ennot76.github.io/Fragen-Fazit/one-point-zero-logo.png"
+  alt="One Point Zero Logo"
+  style="height:48px;width:auto;object-fit:contain;border-radius:8px;"
+/>    <h1 style="margin:0;">Quick Check Audits</h1>
+  </div>
+  <p class="sub">
+    Übersicht aller gespeicherten Profit Leak Quick Checks (Version 4.3.2)
+  </p>
+</header>
+
+  <section class="panel">
+    <div class="controls">
+      <div class="status-row">
+        <span class="badge">
+          <span id="countLabel">0 Einträge</span>
+        </span>
+        <span class="muted" id="lastUpdatedLabel">Noch nicht geladen</span>
+      </div>
+      <div class="status-row">
+        <input type="search" id="searchInput" placeholder="Unternehmen / Kontakt / Branche suchen…"/>
+        <button class="btn" id="reloadBtn" type="button">Neu laden</button>
+        <button class="btn gold" id="downloadCsvBtn" type="button">CSV exportieren</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="table-wrap panel">
+    <table id="auditTable">
+      <thead>
+        <tr>
+          <th class="sortable" data-sort-key="date">Datum</th>
+          <th class="sortable" data-sort-key="company">Unternehmen</th>
+          <th class="sortable" data-sort-key="contact">Kontakt</th>
+          <th class="sortable" data-sort-key="industry">Branche</th>
+          <th class="sortable" data-sort-key="revenueProfit">Umsatz / Gewinn</th>
+          <th class="sortable" data-sort-key="allLeaks">Alle Leaks</th>
+          <th class="sortable" data-sort-key="topLeak">Top Leak</th>
+          <th class="sortable" data-sort-key="benchmark">Benchmark</th>
+          <th class="sortable" data-sort-key="readiness">Bereitschaft</th>
+          <th class="sortable" data-sort-key="follow">Follow-up</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody id="auditTableBody">
+        <tr>
+          <td colspan="11" class="muted">Noch keine Daten geladen.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div id="detailModal" class="modal">
+  <div id="detailContent" class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;">
+      <h3 id="detailTitle" style="margin:0;font-size:18px;font-weight:600;"></h3>
+      <button id="closeDetailBtn" class="detail-close" type="button" style="font-size:16px;font-weight:900;color:#000;background:transparent;border:none;cursor:pointer;padding:0 4px;">&times;</button>
+    </div>
+    <div id="detailCard"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<button id="killAllBtn" class="btn danger small" type="button">Alle Testdaten löschen</button>
+
+<!-- Libreria PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+<script>
+const CONFIG = {
+  jsonbinBinId: "6a26d11ff5f4af5e29cbd43d",
+  jsonbinApiKey: "$2a$10$Ptz6A3DYRVCx6xos.DtVCOj/GJTNXPZiOfRIKu/NGF7L.AniURKMm",
+  jsonbinUrl: "https://api.jsonbin.io/v3/b"
+};
+
+const toastEl = document.getElementById("toast");
+let toastTimeout = null;
+function showToast(message, duration = 2000){
+  if (!toastEl) return;
+  toastEl.textContent = message;
+  toastEl.classList.add("visible");
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastEl.classList.remove("visible");
+  }, duration);
+}
+
+// domande + opzioni
+const QUESTION_META = {
+  q1: { label:"Wann haben Sie zuletzt Ihre Preise bewusst angepasst?", type:"single",
+    opts:["Innerhalb der letzten 3 Monate","Innerhalb der letzten 6 Monate","Innerhalb der letzten 12 Monate","Vor mehr als einem Jahr","Vor mehr als zwei Jahren","Noch nie bewusst angepasst"] },
+  q2: { label:"Wie sicher fühlen Sie sich bei Ihrer Preisgestaltung?", type:"scale",
+    opts:["1 = UNSICHER","2 = EHER UNSICHER","3 = KLAR UND STRATEGISCH","4 = SEHR KLAR UND STRATEGISCH"] },
+  q3: { label:"Wie viele Kundengespräche führen typischerweise zu einem Auftrag?", type:"single",
+    opts:["1 von 2","1 von 5","1 von 10","1 von 20","Weniger als 1 von 20","Schwer einzuschätzen"] },
+  q4: { label:"Identifizieren Sie die 2 größten Hemmnisse im Vertrieb.", type:"multi", max:2,
+    opts:["Zu wenig Anfragen","Zu viele unpassende Anfragen","Lange Entscheidungszeiten","Preiswiderstand","Niedrige Abschlussquote","Kapazitätsengpässe","Zu wenig Nachfassen","Unklare Positionierung","Zu wenig Zeit für Vertrieb","Kein systematischer Vertriebsprozess"] },
+  q5: { label:"Wie gut können Sie heute erkennen, welche Kunden, Projekte oder Leistungen wirklich Gewinn bringen?", type:"scale",
+    opts:["1 = kaum erkennbar","2 = teilweise erkennbar","3 = gut erkennbar","4 = sehr klar erkennbar"] },
+  q6: { label:"Wo spüren Sie aktuell den größten Kostendruck? Max 3 Antworten", type:"multi", max:3,
+    opts:["Personal","Material","Energie","Miete","Logistik","Marketing","Software","Externe Dienstleister","Finanzierungskosten","Bankgebühren","Nacharbeit / Fehler","Administration","Businessentwicklung","Weiterbildung","Sonstiges"] },
+  q7: { label:"Wofür geht aktuell die meiste Zeit verloren? Max 3 Antworten", type:"multi", max:3,
+    opts:["Abstimmung & Koordination","Fehler beheben","Angebote / Kalkulationen","Meetings","Personalthemen","Administration","Lieferantenprobleme","Kundenkommunikation","Feuerwehr-Themen","Doppelte Arbeit","Unklare Verantwortlichkeiten","Nachfragen wegen fehlender Informationen","Akquise","Vertrieb","Marketing","Produktentwicklung","Schulung / Weiterbildung"] },
+  q8: { label:"Wie oft fühlt sich Ihr Unternehmen eher reaktiv statt aktiv gesteuert an?", type:"scale",
+    opts:["1 = selten (aktiv gesteuert)","2 = manchmal","3 = häufig","4 = sehr häufig (meist reaktiv)"] },
+  q9: { label:"Wie behalten Sie Ihre Liquidität aktuell im Blick?", type:"single",
+    opts:["Dashboard / Live-Übersicht","Eigene Liquiditätsplanung","Monatsbericht","Gewinn- und Verlustrechnung","Steuerberater / externe Auswertung","Kontostand","Bauchgefühl","Nicht wirklich strukturiert"] },
+  q10:{ label:"Wie häufig erzeugt Wachstum zusätzlichen Liquiditäts- oder Organisationsdruck?", type:"scale",
+    opts:["1 = kaum","2 = selten","3 = häufig","4 = sehr stark","5 = fast immer"] },
+  q11:{ label:"Wie relevant ist das Thema Gewinn- und Liquiditätsverbesserung aktuell für Sie?", type:"single",
+    opts:["Sofort wichtig","Innerhalb der nächsten 3 Monate relevant","Dieses Jahr relevant","Erstmal Orientierung"] },
+  q12:{ label:"Wie offen sind Sie für einen strukturierten Blick auf Ihre Gewinn- und Liquiditätspotenziale?", type:"single",
+    opts:["Sehr interessiert","Offen dafür","Neugierig, aber unsicher","Aktuell eher nicht","Ich möchte erst die Ergebnisse verstehen"] },
+  q13:{ label:"Wenn der Quick Check klare Potenziale zeigt: Wie schnell würden Sie den nächsten Schritt gehen wollen?", type:"single",
+    opts:["Sofort","Innerhalb von 30 Tagen","Innerhalb von 3 Monaten","Später im Jahr"] }
+};
+
+// scale 1-based
+const SCALE_1_BASED = new Set(["q2","q5","q8","q10"]);
+// domande con ranking 0=best ma da mostrare 1=best
+const RANK_0_BASED_TO_1 = new Set(["q11","q12","q13"]);
+
+const tableBody = document.getElementById("auditTableBody");
+const countLabel = document.getElementById("countLabel");
+const lastUpdatedLabel = document.getElementById("lastUpdatedLabel");
+const searchInput = document.getElementById("searchInput");
+const sortableHeaders = Array.from(document.querySelectorAll("th.sortable"));
+const reloadBtn = document.getElementById("reloadBtn");
+const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+const killAllBtn = document.getElementById("killAllBtn");
+
+const detailModal = document.getElementById("detailModal");
+const detailContent = document.getElementById("detailContent");
+
+let currentSort = { key: "date", direction: "asc" };
+let allAudits = [];
+let isSaving = false;
+
+function formatDate(iso){
+  if(!iso) return "–";
+  const d = new Date(iso);
+  if(Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("de-DE",{
+    year:"numeric",month:"2-digit",day:"2-digit",
+    hour:"2-digit",minute:"2-digit"
+  });
+}
+
+// helper per filename
+function makeSafeFilePart(str){
+  return String(str || "")
+    .trim()
+    .replace(/\s+/g,"_")
+    .replace(/[^\w\-]/g,"");
+}
+
+function benchmarkClass(text){
+  if (text == null) return "";
+  const s = String(text);
+  if (s.includes("Level 1") || s.includes("Level 2")) return "good";
+  if (s.includes("Level 3")) return "warn";
+  return "bad";
+}
+
+function readinessText(readiness){
+  if (!readiness) return "–";
+  const lines = [];
+  const op = readiness.openness;
+  const ur = readiness.urgency;
+  const sp = readiness.speed;
+  if (op != null) lines.push(`Openness: ${op + 1}`);
+  if (ur != null) lines.push(`Urgency: ${ur + 1}`);
+  if (sp != null) lines.push(`Speed: ${sp + 1}`);
+  return lines.length ? lines.join("<br>") : "–";
+}
+
+function leakKeyLabel(key){
+  const map = {
+    pricing: "Pricing Hebel",
+    cost: "Cost Hebel",
+    workingCapital: "Working Capital Hebel",
+    process: "Process Hebel",
+    positioning: "Positioning Hebel"
+  };
+  return map[key] || key;
+}
+
+function leakLevelClass(level){
+  const n = Number(level);
+  if (Number.isNaN(n)) return "";
+  if (n <= 1) return "level-1";
+  if (n <= 2) return "level-2";
+  if (n <= 3) return "level-3";
+  return "level-4";
+}
+
+function normalizeText(value){
+  return String(value || "").trim().toLowerCase();
+}
+
+function parseNumericValue(value){
+  if (typeof value === "number") return value;
+  const text = String(value || "").replace(/\./g, "").replace(/,/g, ".");
+  const match = text.match(/-?\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 0;
+}
+
+function getLeakEntries(leaks){
+  return Object.entries(leaks || {}).filter(([, v]) => v !== null && v !== undefined && v !== "");
+}
+
+function getTopLeakEntry(audit){
+  return getLeakEntries(audit.leaks)
+    .sort((a,b) => Number(b[1] || 0) - Number(a[1] || 0))[0] || ["", 0];
+}
+
+function getReadinessMeta(audit){
+  const readiness = audit.readiness || {};
+  const openness = Number(readiness.openness ?? readiness.openess ?? 0);
+  const opennessScore = openness ? (4 - openness) : 0;
+  const timing = Number(readiness.timing ?? 0);
+  const budget = Number(readiness.budget ?? 0);
+  const benchmark = Number(audit.benchmark || 0);
+  return {
+    openness,
+    timing,
+    budget,
+    benchmark,
+    readinessScore: opennessScore + timing + budget
+  };
+}
+
+function getSortValue(audit, key){
+  const topLeak = getTopLeakEntry(audit);
+  const readiness = getReadinessMeta(audit);
+  switch(key){
+    case "date":          return new Date(audit.timestamp || 0).getTime() || 0;
+    case "company":       return normalizeText(audit.companyName || audit.company);
+    case "contact":       return normalizeText(audit.kontaktperson || audit.contactPerson || audit.contactName);
+    case "industry":      return normalizeText(audit.industry || audit.category);
+    case "revenueProfit": return parseNumericValue(audit.turnover || audit.revenueProfit);
+    case "allLeaks":      return getLeakEntries(audit.leaks).length;
+    case "topLeak":       return Number(topLeak[1] || 0);
+    case "benchmark":     return readiness.benchmark;
+    case "readiness":     return readiness.readinessScore;
+    case "follow":        return normalizeText(audit.followStatus || "");
+    default:              return "";
+  }
+}
+
+function applySort(list){
+  if (!currentSort.key) return [...list];
+  const direction = currentSort.direction === "asc" ? 1 : -1;
+  return [...list].sort((a,b) => {
+    const av = getSortValue(a, currentSort.key);
+    const bv = getSortValue(b, currentSort.key);
+    if (typeof av === "string" || typeof bv === "string") {
+      return String(av).localeCompare(String(bv), "de", { numeric:true, sensitivity:"base" }) * direction;
+    }
+    return ((av || 0) - (bv || 0)) * direction;
+  });
+}
+
+function updateSortHeaders(){
+  sortableHeaders.forEach((th) => {
+    th.classList.remove("sort-asc", "sort-desc");
+    if (th.dataset.sortKey === currentSort.key) {
+      th.classList.add(currentSort.direction === "asc" ? "sort-asc" : "sort-desc");
+    }
+  });
+}
+
+function renderLeaks(leaks){
+  if(!leaks || typeof leaks !== "object") return "–";
+  const items = Object.entries(leaks)
+    .sort((a,b) => Number(b[1] || 0) - Number(a[1] || 0));
+  if(!items.length) return "–";
+  return `<div class="leak-list">
+    <div class="leak-stack">
+      ${items.map(([key, level]) => `
+        <div class="leak-pill">
+          <span class="leak-label">${leakKeyLabel(key)}</span>
+          <span class="leak-level-wrapper">
+            <span class="level-pill ${leakLevelClass(level)}"
+                  title="Level ${level}">${Number(level)}</span>
+          </span>
+        </div>
+      `).join("")}
+    </div>
+  </div>`;
+}
+
+async function deleteAudit(audit) {
+  if (isSaving) return;
+  const label = audit.companyName || audit._id || "diesen Eintrag";
+  const confirmed = window.confirm(`Möchtest du "${label}" wirklich löschen?`);
+  if (!confirmed) return;
+  try {
+    isSaving = true;
+    setGlobalLoadingState(true, "Lösche Eintrag…");
+    const updatedAudits = allAudits.filter(a => a !== audit);
+    const payload = { audits: updatedAudits };
+    const res = await fetch(`${CONFIG.jsonbinUrl}/${CONFIG.jsonbinBinId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": CONFIG.jsonbinApiKey
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Fehler beim Aktualisieren des Bins (" + res.status + ")");
+    allAudits = updatedAudits;
+    applyFilter();
+    lastUpdatedLabel.textContent = "Zuletzt aktualisiert: " + new Date().toLocaleString("de-DE");
+    showToast("Eintrag gelöscht");
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Löschen des Eintrags: " + err.message);
+    lastUpdatedLabel.textContent = "Fehler beim Löschen";
+  } finally {
+    isSaving = false;
+    setGlobalLoadingState(false);
+  }
+}
+
+async function updateSingleAudit(audit) {
+  if (isSaving) return;
+  try {
+    isSaving = true;
+    setGlobalLoadingState(true, "Aktualisiere Eintrag…");
+    const payload = { audits: allAudits };
+    const res = await fetch(`${CONFIG.jsonbinUrl}/${CONFIG.jsonbinBinId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": CONFIG.jsonbinApiKey
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Fehler beim Aktualisieren des Bins (" + res.status + ")");
+    lastUpdatedLabel.textContent = "Zuletzt aktualisiert: " + new Date().toLocaleString("de-DE");
+    showToast("Eintrag gespeichert");
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Speichern des Eintrags: " + err.message);
+    lastUpdatedLabel.textContent = "Fehler beim Speichern";
+  } finally {
+    isSaving = false;
+    setGlobalLoadingState(false);
+  }
+}
+
+function setGlobalLoadingState(loading, message) {
+  reloadBtn.disabled = loading;
+  downloadCsvBtn.disabled = loading;
+  searchInput.disabled = loading;
+  if (loading) lastUpdatedLabel.textContent = message || "Bitte warten…";
+}
+
+function ensureInternalFields(a) {
+  if (a.followStatus === undefined) a.followStatus = "Nichts";
+  if (a.followNote === undefined) a.followNote = "";
+}
+
+function renderTable(audits){
+  tableBody.innerHTML = "";
+  if(!audits.length){
+    tableBody.innerHTML = `<tr><td colspan="11" class="muted">Keine Einträge vorhanden.</td></tr>`;
+    countLabel.textContent = "0 Einträge";
+    return;
+  }
+  countLabel.textContent = audits.length + (audits.length === 1 ? " Eintrag" : " Einträge");
+  audits.forEach(a=>{
+    ensureInternalFields(a);
+
+    const tr = document.createElement("tr");
+
+    const dateTd = document.createElement("td");
+    const formattedDate = formatDate(a.timestamp);
+    dateTd.textContent = formattedDate;
+
+    const companyTd = document.createElement("td");
+    companyTd.innerHTML =
+      `<div><strong>${a.companyName || "–"}</strong></div>
+       <div class="small muted">${a.notes ? String(a.notes).slice(0,80) + (String(a.notes).length>80?"…":"") : ""}</div>`;
+
+    const contactTd = document.createElement("td");
+    contactTd.innerHTML =
+      `<div>${a.kontaktperson || a.contactPerson || "–"}</div>
+       <div class="small muted">${a.email || ""}</div>
+       <div class="small muted">${a.telefonnummer || a.phone || ""}</div>`;
+
+    const industryTd = document.createElement("td");
+    industryTd.textContent = a.industry || a.category || "–";
+
+    const ugTd = document.createElement("td");
+    const turnoverValue = a.turnover || (a.price != null ? `€${a.price}` : "–");
+    const profitValue = a.profit || (a.cost != null ? `Kosten: €${a.cost}` : "");
+    ugTd.innerHTML =
+      `<div class="small"><span class="tag">${turnoverValue}</span></div>
+       <div class="small muted">${profitValue}</div>`;
+
+    const leaksTd = document.createElement("td");
+    leaksTd.innerHTML = renderLeaks(a.leaks);
+
+    const topLeakTd = document.createElement("td");
+    topLeakTd.innerHTML = `<span class="pill">${a.topLeak || "–"}</span>`;
+
+    const benchTd = document.createElement("td");
+    const cls = benchmarkClass(a.benchmark);
+    const benchText = (a.benchmark || "–").toString();
+    benchTd.innerHTML = `<span class="pill ${cls}">${benchText.split(":")[0]}</span>`;
+
+    const readinessTd = document.createElement("td");
+    readinessTd.innerHTML = `<div class="small">${readinessText(a.readiness)}</div>`;
+
+    const followTd = document.createElement("td");
+    followTd.style.whiteSpace = "nowrap";
+
+    const sel = document.createElement("select");
+    sel.className = "follow-select";
+    ["Nichts","Angerufen","Angeschrieben"].forEach(optVal => {
+      const o = document.createElement("option");
+      o.value = optVal;
+      o.textContent = optVal;
+      if ((a.followStatus || "Nichts") === optVal) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("click", e => e.stopPropagation());
+    sel.addEventListener("change", e => {
+      a.followStatus = e.target.value;
+    });
+
+    const noteInput = document.createElement("input");
+    noteInput.type = "text";
+    noteInput.className = "follow-input";
+    noteInput.placeholder = "Datum / Notiz";
+    noteInput.value = a.followNote || "";
+    noteInput.addEventListener("click", e => e.stopPropagation());
+    noteInput.addEventListener("input", e => {
+      a.followNote = e.target.value;
+    });
+
+    followTd.appendChild(sel);
+    followTd.appendChild(document.createElement("br"));
+    followTd.appendChild(noteInput);
+
+    const actionsTd = document.createElement("td");
+    actionsTd.style.whiteSpace = "nowrap";
+
+    const actionsWrapper = document.createElement("div");
+    actionsWrapper.className = "actions-wrapper";
+
+    const updateBtn = document.createElement("button");
+    updateBtn.type = "button";
+    updateBtn.className = "btn small";
+    updateBtn.setAttribute("aria-label", "Eintrag aktualisieren");
+    updateBtn.title = "Eintrag aktualisieren";
+    updateBtn.textContent = "✔";
+    updateBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      updateSingleAudit(a);
+    });
+
+    const pdfBtn = document.createElement("button");
+    pdfBtn.type = "button";
+    pdfBtn.className = "btn small";
+    pdfBtn.style.background = "#555";
+    pdfBtn.style.color = "#fff";
+    pdfBtn.setAttribute("aria-label", "Quick-Check als PDF speichern");
+    pdfBtn.title = "Quick-Check als PDF speichern";
+    pdfBtn.textContent = "PDF";
+    pdfBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      generatePdfForAudit(a, formattedDate);
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "btn danger small";
+    deleteBtn.setAttribute("aria-label", "Eintrag löschen");
+    deleteBtn.title = "Eintrag löschen";
+    deleteBtn.textContent = "✖";
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteAudit(a);
+    });
+
+    actionsWrapper.appendChild(updateBtn);
+    actionsWrapper.appendChild(pdfBtn);
+    actionsWrapper.appendChild(deleteBtn);
+    actionsTd.appendChild(actionsWrapper);
+
+    tr.appendChild(dateTd);
+    tr.appendChild(companyTd);
+    tr.appendChild(contactTd);
+    tr.appendChild(industryTd);
+    tr.appendChild(ugTd);
+    tr.appendChild(leaksTd);
+    tr.appendChild(topLeakTd);
+    tr.appendChild(benchTd);
+    tr.appendChild(readinessTd);
+    tr.appendChild(followTd);
+    tr.appendChild(actionsTd);
+
+    tableBody.appendChild(tr);
+
+    tr.addEventListener("click", () => {
+      showDetail(a);
+    });
+  });
+}
+
+// ranking per q11, q12, q13 (0 = best)
+function getRankForQuestion(logicalId, num){
+  if (!RANK_0_BASED_TO_1.has(logicalId)) return null;
+  return num + 1;
+}
+
+function showDetail(audit) {
+  const title = document.getElementById("detailTitle");
+  const cardDiv = document.getElementById("detailCard");
+
+  const labels = {
+    timestamp: "Datum und Uhrzeit",
+    companyName: "Unternehmen",
+    foundingYear: "Gründungsjahr",
+    kontaktperson: "Kontaktperson",
+    contactPerson: "Kontaktperson",
+    telefonnummer: "Telefon",
+    phone: "Telefon",
+    email: "E-Mail",
+    industry: "Branche",
+    category: "Branche",
+    turnover: "Umsatz",
+    price: "Preis",
+    profit: "Gewinn",
+    cost: "Kosten",
+    notes: "Notizen",
+    topLeak: "Top Leak",
+    benchmark: "Benchmark",
+    readiness: "Bereitschaft",
+    serviceName: "Leistung / Service",
+    minutes: "Minuten",
+    monthlyQty: "Monatliche Menge",
+    totalScore: "Gesamtscore",
+    averageScore: "Durchschnittsscore",
+    answers: "Antworten",
+    leaks: "Leaks"
+  };
+
+  const questionLabels = {
+    companyName: "Wie heißt das Unternehmen?",
+    foundingYear: "In welchem Jahr wurde das Unternehmen gegründet?",
+    kontaktperson: "Wer ist die Kontaktperson?",
+    contactPerson: "Wer ist die Kontaktperson?",
+    telefonnummer: "Welche Telefonnummer hat der Kontakt?",
+    phone: "Welche Telefonnummer hat der Kontakt?",
+    email: "Welche E-Mail-Adresse hat der Kontakt?",
+    industry: "In welcher Branche ist das Unternehmen tätig?",
+    category: "In welcher Branche ist das Unternehmen tätig?",
+    turnover: "Wie hoch ist der Umsatz?",
+    price: "Wie hoch ist der Preis?",
+    profit: "Wie hoch ist der Gewinn?",
+    cost: "Wie hoch sind die Kosten?",
+    notes: "Welche Notizen gibt es?",
+    topLeak: "Was ist der Top Leak?",
+    benchmark: "Welcher Benchmark wurde vergeben?",
+    readiness: "Wie ist die Bereitschaft?",
+    serviceName: "Welche Leistung / welcher Service?",
+    minutes: "Wie viele Minuten?",
+    monthlyQty: "Wie hoch ist die monatliche Menge?",
+    totalScore: "Wie hoch ist der Gesamtscore?",
+    averageScore: "Wie hoch ist der Durchschnittsscore?",
+    answers: "Welche Antworten wurden gegeben?",
+    leaks: "Welche Leaks wurden gefunden?"
+  };
+
+  cardDiv.innerHTML = "";
+
+cardDiv.innerHTML = "";
+
+// logo in cima alla card (visibile anche nel PDF)
+const logoRow = document.createElement("div");
+logoRow.style.cssText = "display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #ece7da;";
+logoRow.innerHTML = `
+  <img
+    src="https://ennot76.github.io/Fragen-Fazit/one-point-zero-logo.png"
+    alt="One Point Zero"
+    crossorigin="anonymous"
+    style="height:40px;width:auto;object-fit:contain;"
+  />
+  <div>
+    <div style="font-family:'Century Gothic','Trebuchet MS',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#7a746a;">Profit Leak Quick Check</div>
+    <div style="font-family:'Century Gothic','Trebuchet MS',sans-serif;font-size:16px;font-weight:700;letter-spacing:.05em;" id="pdfCompanyName"></div>
+  </div>
+`;
+cardDiv.appendChild(logoRow);
+
+  const company = audit.companyName || "Unbenannter Eintrag";
+  title.textContent = company + " – Profit Leak Quick Check";
+
+  const keyFields = [
+    { key: "timestamp" },
+    { key: "companyName" },
+    { key: "foundingYear" },
+    { key: "kontaktperson", fallback: "contactPerson" },
+    { key: "telefonnummer", fallback: "phone" },
+    { key: "email" },
+    { key: "industry", fallback: "category" },
+    { key: "turnover", fallbackValue: audit.price != null ? `€${audit.price}` : "–" },
+    { key: "profit", fallbackValue: audit.cost != null ? `Kosten: €${audit.cost}` : "–" },
+    { key: "topLeak" },
+    { key: "benchmark" }
+  ];
+
+  const renderValue = (key, value) => {
+    if (value === null || value === undefined || value === "") return "–";
+    if (key === "timestamp") return formatDate(value);
+    if (key === "leaks" && typeof value === "object") return renderLeaks(value);
+    if (key === "readiness" && typeof value === "object") {
+      const readinessArr = [];
+      if (value.openness != null) readinessArr.push(`Openness: ${value.openness + 1}`);
+      if (value.urgency != null) readinessArr.push(`Urgency: ${value.urgency + 1}`);
+      if (value.speed != null) readinessArr.push(`Speed: ${value.speed + 1}`);
+      return readinessArr.length ? readinessArr.join(" | ") : "–";
+    }
+    if (typeof value === "object") {
+      const pre = document.createElement("pre");
+      pre.className = "json-pre";
+      pre.textContent = JSON.stringify(value, null, 2);
+      return pre;
+    }
+    return String(value);
+  };
+
+  keyFields.forEach(({ key, fallback, fallbackValue }) => {
+    let val = audit[key];
+    if ((val == null || val === "") && fallback) val = audit[fallback];
+    if ((val == null || val === "") && fallbackValue != null) val = fallbackValue;
+
+    const row = document.createElement("div");
+    const rendered = renderValue(key, val);
+
+    if (rendered instanceof HTMLElement) {
+      row.innerHTML = `<strong>${questionLabels[key] || labels[key] || key}:</strong> `;
+      row.appendChild(rendered);
+    } else {
+      row.innerHTML = `<strong>${questionLabels[key] || labels[key] || key}:</strong> ${rendered}`;
+    }
+
+    cardDiv.appendChild(row);
+  });
+
+  if (audit.leaks) {
+    const leaksDiv = document.createElement("div");
+    leaksDiv.innerHTML = `<strong>${questionLabels.leaks}:</strong><div style="margin-top:6px;">${renderLeaks(audit.leaks)}</div>`;
+    cardDiv.appendChild(leaksDiv);
+  }
+
+  if (audit.readiness) {
+    const readinessDiv = document.createElement("div");
+    readinessDiv.innerHTML = `<strong>${questionLabels.readiness}:</strong><br>${renderValue("readiness", audit.readiness)}`;
+    cardDiv.appendChild(readinessDiv);
+  }
+
+  if (audit.answers && typeof audit.answers === "object") {
+    const answersDiv = document.createElement("div");
+    answersDiv.innerHTML = `<strong>${questionLabels.answers}:</strong>`;
+
+    const answersList = document.createElement("div");
+    answersList.style.marginTop = "6px";
+
+    Object.entries(audit.answers).forEach(([rawKey, rawValue]) => {
+      const item = document.createElement("div");
+      item.className = "answer-block";
+      item.style.marginBottom = "10px";
+      item.style.padding = "8px 10px";
+      item.style.border = "1px solid #ece7da";
+      item.style.borderRadius = "10px";
+      item.style.background = "#fbf9f4";
+
+      let logicalId = rawKey;
+      const idx = Number(rawKey);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < 13) logicalId = "q" + (idx + 1);
+
+      const meta = QUESTION_META[logicalId] || {};
+      const questionText = meta.label || logicalId;
+
+      const mapValueToLabel = (val) => {
+        if (typeof val === "string" && val.trim() !== "" && !/^\d+$/.test(val.trim())) return val;
+        if (!meta.opts || !Array.isArray(meta.opts)) return String(val);
+        const num = Number(val);
+        if (Number.isNaN(num)) return String(val);
+
+        if (SCALE_1_BASED.has(logicalId)) {
+          const opt1 = meta.opts[num - 1];
+          return opt1 || String(val);
+        }
+
+        const opt0 = meta.opts[num];
+        const rank = getRankForQuestion(logicalId, num);
+        if (rank != null) {
+          const label = opt0 || String(val);
+          return `${rank} – ${label}`;
+        }
+        return opt0 || String(val);
+      };
+
+      let answerText = "–";
+      if (rawValue !== null && rawValue !== undefined && rawValue !== "") {
+        if (Array.isArray(rawValue)) {
+          const labelsArr = rawValue.map(mapValueToLabel);
+          answerText = labelsArr.join(", ");
+        } else {
+          answerText = mapValueToLabel(rawValue);
+        }
+      }
+
+      item.innerHTML = `
+        <div style="font-weight:700;margin-bottom:4px;">${questionText}</div>
+        <div style="white-space:pre-wrap;">${answerText}</div>
+      `;
+
+      answersList.appendChild(item);
+    });
+
+    answersDiv.appendChild(answersList);
+    cardDiv.appendChild(answersDiv);
+  }
+
+  ensureInternalFields(audit);
+  const internalDiv = document.createElement("div");
+  internalDiv.innerHTML =
+    `<strong>Follow-up:</strong> ${audit.followStatus || "Nichts"}`
+    + (audit.followNote ? ` – ${audit.followNote}` : "");
+  cardDiv.appendChild(internalDiv);
+
+  const notes = audit.notes || "–";
+  const notesDiv = document.createElement("div");
+  notesDiv.innerHTML = `<strong>${questionLabels.notes}:</strong> ${notes}`;
+  cardDiv.appendChild(notesDiv);
+
+  detailModal.style.display = "flex";
+  detailModal.setAttribute("data-visible", "true");
+}
+
+document.getElementById("closeDetailBtn").addEventListener("click", () => {
+  detailModal.style.display = "none";
+  detailModal.removeAttribute("data-visible");
+});
+
+detailModal.addEventListener("click", e => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.style.display = "none";
+    e.currentTarget.removeAttribute("data-visible");
+  }
+});
+
+// genera UNTERNEHMEN_QC_DATUM.pdf
+function generatePdfForAudit(audit, formattedDate){
+  const pdfLib = window.html2pdf;
+  if (!pdfLib) {
+    alert("PDF-Funktion nicht verfügbar.");
+    return;
+  }
+
+  // mostra il dettaglio
+  showDetail(audit);
+
+  setTimeout(() => {
+    const companySafe = makeSafeFilePart(audit.companyName || "Unternehmen");
+    const dateSafe = makeSafeFilePart(formattedDate || "");
+    const fileName = `${companySafe}_QC_${dateSafe || "Datum"}.pdf`;
+
+    const element = detailContent;
+
+    // attiva modalità PDF (senza max-height/scroll)
+    element.classList.add("pdf-mode");
+
+    const opt = {
+      margin:       10,
+      filename:     fileName,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['css', 'legacy'] }
+    };
+
+    pdfLib().set(opt).from(element).save()
+      .then(() => showToast("PDF erstellt: " + fileName))
+      .catch(err => {
+        console.error(err);
+        alert("Fehler beim Erstellen des PDFs: " + err.message);
+      })
+      .finally(() => {
+        // torna al comportamento normale del modal
+        element.classList.remove("pdf-mode");
+      });
+  }, 200);
+}
+// Kill button: Alt+Shift+K
+window.addEventListener("keydown", (e) => {
+  if (e.altKey && e.shiftKey && e.key.toLowerCase() === "k") {
+    killAllBtn.classList.toggle("visible");
+  }
+});
+
+killAllBtn.addEventListener("click", async () => {
+  const sure = window.prompt("Alle Audits löschen? Tippe 'DELETE' um zu bestätigen:");
+  if (sure !== "DELETE") return;
+  if (isSaving) return;
+  try {
+    isSaving = true;
+    setGlobalLoadingState(true, "Lösche alle Audits…");
+    const payload = { audits: [] };
+    const res = await fetch(`${CONFIG.jsonbinUrl}/${CONFIG.jsonbinBinId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": CONFIG.jsonbinApiKey
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Fehler beim Löschen (" + res.status + ")");
+    allAudits = [];
+    applyFilter();
+    lastUpdatedLabel.textContent =
+      "Alle Audits gelöscht: " + new Date().toLocaleString("de-DE");
+    showToast("Alle Testdaten gelöscht");
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Löschen aller Audits: " + err.message);
+    lastUpdatedLabel.textContent = "Fehler beim Löschen";
+  } finally {
+    isSaving = false;
+    setGlobalLoadingState(false);
+  }
+});
+
+async function loadAudits(){
+  tableBody.innerHTML =
+    `<tr><td colspan="11" class="muted">Lade Daten aus JSONBin…</td></tr>`;
+  try{
+    setGlobalLoadingState(true, "Lade Daten aus JSONBin…");
+    const url = `${CONFIG.jsonbinUrl}/${CONFIG.jsonbinBinId}/latest`;
+    const res = await fetch(url,{
+      headers:{ "X-Master-Key": CONFIG.jsonbinApiKey }
+    });
+    if(!res.ok) throw new Error("Fehler beim Laden ("+res.status+")");
+    const json = await res.json();
+    const record = json.record || {};
+    const list = Array.isArray(record.audits) ? record.audits : [];
+    allAudits = list.sort((a,b)=>{
+      const ta = new Date(a.timestamp || 0).getTime();
+      const tb = new Date(b.timestamp || 0).getTime();
+      return tb - ta;
+    });
+    allAudits.forEach(ensureInternalFields);
+    lastUpdatedLabel.textContent =
+      "Zuletzt geladen: " + new Date().toLocaleString("de-DE");
+    applyFilter();
+    showToast("Daten neu geladen");
+  }catch(err){
+    console.error("[AUDITS] Load error:", err);
+    tableBody.innerHTML =
+      `<tr><td colspan="11" class="muted">Fehler beim Laden der Daten: ${err.message}</td></tr>`;
+    countLabel.textContent = "0 Einträge";
+    lastUpdatedLabel.textContent = "Fehler beim Laden";
+  } finally {
+    setGlobalLoadingState(false);
+  }
+}
+
+function applyFilter(){
+  const q = searchInput.value.trim().toLowerCase();
+  if(!q){
+    renderTable(applySort(allAudits));
+    updateSortHeaders();
+    return;
+  }
+  const filtered = allAudits.filter(a=>{
+    const leakText = a.leaks && typeof a.leaks === 'object'
+      ? Object.entries(a.leaks).map(([k,v]) => `${k} ${v} ${leakKeyLabel(k)}`).join(' ')
+      : '';
+    const fields = [
+      a.companyName,
+      a.kontaktperson,
+      a.contactPerson,
+      a.email,
+      a.telefonnummer,
+      a.phone,
+      a.industry,
+      a.category,
+      a.notes,
+      a.topLeak,
+      a.benchmark,
+      leakText,
+      a.followStatus,
+      a.followNote
+    ].map(x => (x || "").toString().toLowerCase());
+    return fields.some(f => f.includes(q));
+  });
+  renderTable(applySort(filtered));
+  updateSortHeaders();
+}
+
+function auditsToCsv(audits){
+  if(!audits.length) return "";
+  const headers = [
+    "id","timestamp","companyName","foundingYear","kontaktperson",
+    "telefonnummer","email","industry","turnover","profit","notes",
+    "topLeak","benchmark",
+    "followStatus","followNote",
+    "leak_pricing","leak_cost","leak_workingCapital","leak_process","leak_positioning",
+    "readiness_urgency","readiness_openness","readiness_speed"
+  ];
+  const escape = value => {
+    if(value == null) return "";
+    const s = value.toString().replace(/"/g,'""');
+    return `"${s}"`;
+  };
+  const lines = [];
+  lines.push(headers.join(","));
+  audits.forEach(a=>{
+    const row = [
+      a._id || "",
+      a.timestamp || "",
+      a.companyName || "",
+      a.foundingYear || "",
+      a.kontaktperson || a.contactPerson || "",
+      a.telefonnummer || a.phone || "",
+      a.email || "",
+      a.industry || a.category || "",
+      a.turnover || (a.price != null ? `€${a.price}` : ""),
+      a.profit || (a.cost != null ? `Kosten: €${a.cost}` : ""),
+      a.notes || "",
+      a.topLeak || "",
+      a.benchmark || "",
+      a.followStatus || "",
+      a.followNote || "",
+      (a.leaks && a.leaks.pricing) ?? "",
+      (a.leaks && a.leaks.cost) ?? "",
+      (a.leaks && a.leaks.workingCapital) ?? "",
+      (a.leaks && a.leaks.process) ?? "",
+      (a.leaks && a.leaks.positioning) ?? "",
+      (a.readiness && a.readiness.urgency) ?? "",
+      (a.readiness && a.readiness.openness) ?? "",
+      (a.readiness && a.readiness.speed) ?? ""
+    ].map(escape);
+    lines.push(row.join(","));
+  });
+  return lines.join("\r\n");
+}
+
+function downloadCsv(){
+  const csv = auditsToCsv(allAudits);
+  if(!csv){
+    alert("Keine Daten zum Export vorhanden.");
+    return;
+  }
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "profit-leak-audits.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+sortableHeaders.forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.sortKey;
+    if (currentSort.key === key) {
+      currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+    } else {
+      currentSort.key = key;
+      currentSort.direction = "asc";
+    }
+    applyFilter();
+  });
+});
+
+searchInput.addEventListener("input",applyFilter);
+reloadBtn.addEventListener("click",loadAudits);
+downloadCsvBtn.addEventListener("click",downloadCsv);
+
+loadAudits();
+</script>
+</body>
+</html>
