@@ -189,7 +189,6 @@ body {
   color: #f5d88c;
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
-
 .subsection-title {
   color: #f0c14b;
   font-size: 20px;
@@ -396,7 +395,6 @@ button.secondary-btn:hover { background: #4a4a4a; }
       <h2 class="section-title">📋 Kundendaten & Eingabedaten</h2>
 
       <div class="input-grid kundendaten-grid-2x5">
-        <!-- Riga 1 -->
         <div class="input-box">
           <label>Leistung</label>
           <input type="text" id="leistung" placeholder="Geben Sie die Leistung ein">
@@ -418,11 +416,10 @@ button.secondary-btn:hover { background: #4a4a4a; }
         </div>
 
         <div class="input-box">
-          <label>Umsatz pro Stunde der Leistung (berechnet)</label>
+          <label>Umsatz pro Stunde € (berechnet)</label>
           <input type="number" id="umsatzStundeInput" readonly>
         </div>
 
-        <!-- Riga 2 -->
         <div class="input-box">
           <label>Sales Akq. (Min.)</label>
           <input type="number" id="salesacq" oninput="calculate()">
@@ -444,39 +441,34 @@ button.secondary-btn:hover { background: #4a4a4a; }
         </div>
 
         <div class="input-box">
-          <label>Gewinn pro Stunde der Leistung (berechnet)</label>
+          <label>Gewinn pro Stunde € (berechnet)</label>
           <input type="number" id="gewinnStundeInput" readonly>
         </div>
       </div>
 
-      <!-- media Kategorie in blocco separato -->
       <div class="input-grid">
         <div class="input-box">
-          <label for="avgUmsatzKategorie">
-            Umsatz pro Stunde € (Kategorie)
-          </label>
+          <label for="avgUmsatzKategorie">Umsatz pro Stunde € (Kategorie)</label>
           <input type="number" id="avgUmsatzKategorie" value="35" step="1">
         </div>
 
         <div class="input-box">
-          <label for="avgGewinnKategorie">
-            Gewinn € pro Stunde (Kategorie)
-          </label>
+          <label for="avgGewinnKategorie">Gewinn € pro Stunde (Kategorie)</label>
           <input type="number" id="avgGewinnKategorie" value="10" step="1">
         </div>
       </div>
-    </div>
 
-    <h3 class="subsection-title">📊 Berechnete Ergebnisse</h3>
-    <div class="results-grid">
-      <div class="result-box"><h4>Zeit pro Auftrag</h4><div class="value" id="totalTime">0 Std.</div></div>
-      <div class="result-box"><h4>Umsatz/Monat</h4><div class="value" id="umsatzMonat">0 €</div></div>
-      <div class="result-box"><h4>Dir.Kosten/Monat</h4><div class="value" id="kostenMonat">0 €</div></div>
-      <div class="result-box"><h4>Deckungsbeitrag</h4><div class="value" id="deckungsbeitrag">0 €</div></div>
-      <div class="result-box"><h4>Umsatz/Stunde</h4><div class="value" id="umsatzStunde">0 €</div></div>
-      <div class="result-box"><h4>Gewinn/Stunde</h4><div class="value" id="gewinnStunde">0 €</div></div>
-      <div class="result-box"><h4>Bruttomarge</h4><div class="value" id="bruttomarge">0%</div></div>
-      <div class="result-box"><h4>Zeit/Monat</h4><div class="value" id="zeitMonat">0 Std.</div></div>
+      <h3 class="subsection-title">📊 Berechnete Ergebnisse</h3>
+      <div class="results-grid">
+        <div class="result-box"><h4>Zeit pro Auftrag</h4><div class="value" id="totalTime">0 Std.</div></div>
+        <div class="result-box"><h4>Umsatz/Monat</h4><div class="value" id="umsatzMonat">0 €</div></div>
+        <div class="result-box"><h4>Dir.Kosten/Monat</h4><div class="value" id="kostenMonat">0 €</div></div>
+        <div class="result-box"><h4>Deckungsbeitrag</h4><div class="value" id="deckungsbeitrag">0 €</div></div>
+        <div class="result-box"><h4>Umsatz/Stunde</h4><div class="value" id="umsatzStunde">0 €</div></div>
+        <div class="result-box"><h4>Gewinn/Stunde</h4><div class="value" id="gewinnStunde">0 €</div></div>
+        <div class="result-box"><h4>Bruttomarge</h4><div class="value" id="bruttomarge">0%</div></div>
+        <div class="result-box"><h4>Zeit/Monat</h4><div class="value" id="zeitMonat">0 Std.</div></div>
+      </div>
     </div>
 
     <!-- LEAKAGE-BEWERTUNG -->
@@ -487,7 +479,6 @@ button.secondary-btn:hover { background: #4a4a4a; }
       </p>
 
       <div class="scoring-grid">
-        <!-- PRICING 30% -->
         <div class="scoring-box">
           <h4>Pricing <span class="weight-badge">30%</span></h4>
           <label>Preisgestaltung</label>
@@ -512,7 +503,6 @@ button.secondary-btn:hover { background: #4a4a4a; }
           </select>
         </div>
 
-        <!-- COST 25% -->
         <div class="scoring-box">
           <h4>Cost <span class="weight-badge">25%</span></h4>
           <label>Direkte Kosten</label>
@@ -537,7 +527,6 @@ button.secondary-btn:hover { background: #4a4a4a; }
           </select>
         </div>
 
-        <!-- WORKING CAPITAL 20% -->
         <div class="scoring-box">
           <h4>Working Capital <span class="weight-badge">20%</span></h4>
           <label>Liquidität</label>
@@ -562,7 +551,6 @@ button.secondary-btn:hover { background: #4a4a4a; }
           </select>
         </div>
 
-        <!-- PROCESS INEFFICIENCY 15% -->
         <div class="scoring-box">
           <h4>Process Inefficiency <span class="weight-badge">15%</span></h4>
           <label>Prozessqualität</label>
@@ -587,7 +575,6 @@ button.secondary-btn:hover { background: #4a4a4a; }
           </select>
         </div>
 
-        <!-- STRATEGIC GAP 10% -->
         <div class="scoring-box">
           <h4>Strategic Gap <span class="weight-badge">10%</span></h4>
           <label>Strategische Ausrichtung</label>
@@ -686,22 +673,16 @@ button.secondary-btn:hover { background: #4a4a4a; }
             <div class="gauge" id="gauge-zeit-monat"></div>
           </div>
 
-          <!-- Doppel-Gauge Umsatz vs Kategorie -->
           <div class="gauge-box">
             <h3>Umsatz/Stunde – Leistung vs Kategorie</h3>
             <div class="gauge" id="gauge-umsatz-compare"></div>
-            <div class="gauge-label">
-              Leistung % vs Kategorie (100%)
-            </div>
+            <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
           </div>
 
-          <!-- Doppel-Gauge Gewinn vs Kategorie -->
           <div class="gauge-box">
             <h3>Gewinn/Stunde – Leistung vs Kategorie</h3>
             <div class="gauge" id="gauge-gewinn-compare"></div>
-            <div class="gauge-label">
-              Leistung % vs Kategorie (100%)
-            </div>
+            <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
           </div>
         </div>
       </div>
@@ -749,7 +730,8 @@ let editingIndex = -1;
 let categoryScores = {pricing: 1, zeit: 1, kosten: 1, profit: 1, strategic: 1};
 
 function formatGermanNumber(num, decimals = 2) {
-  const rounded = decimals === 0 ? Math.round(num) : num.toFixed(decimals);
+  const safeNum = Number(num) || 0;
+  const rounded = decimals === 0 ? Math.round(safeNum) : safeNum.toFixed(decimals);
   const parts = rounded.toString().split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return parts.join(',');
@@ -764,7 +746,9 @@ function formatHoursMinutes(hoursFloat) {
   return `${hours}:${minutesStr}`;
 }
 
-function roundUpHours(hours) { return Math.ceil(hours); }
+function roundUpHours(hours) {
+  return Math.ceil(Number(hours) || 0);
+}
 
 function getLeakageStatus(value) {
   if (value >= 1.0 && value <= 1.6) return 'Optimal';
@@ -799,6 +783,7 @@ function showSection(sectionId, btn) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(sectionId).classList.add('active');
   if (btn) btn.classList.add('active');
+
   if (sectionId === 'dashboard') {
     updateAllGauges();
   } else if (sectionId === 'bericht') {
@@ -825,19 +810,17 @@ function calculate() {
   const bruttomarge     = preis > 0 ? ((preis - dirKosten) / preis) * 100 : 0;
   const zeitMonat       = (totalTimeMin * anzahl) / 60;
 
-  document.getElementById('totalTime').textContent    = formatHoursMinutes(totalTimeHrs) + ' Std.';
-  document.getElementById('umsatzMonat').textContent  = formatGermanNumber(umsatzMonat, 2) + ' €';
-  document.getElementById('kostenMonat').textContent  = formatGermanNumber(kostenMonat, 2) + ' €';
+  document.getElementById('totalTime').textContent = formatHoursMinutes(totalTimeHrs) + ' Std.';
+  document.getElementById('umsatzMonat').textContent = formatGermanNumber(umsatzMonat, 2) + ' €';
+  document.getElementById('kostenMonat').textContent = formatGermanNumber(kostenMonat, 2) + ' €';
   document.getElementById('deckungsbeitrag').textContent = formatGermanNumber(deckungsbeitrag, 2) + ' €';
   document.getElementById('umsatzStunde').textContent = formatGermanNumber(umsatzStunde, 2) + ' €';
   document.getElementById('gewinnStunde').textContent = formatGermanNumber(gewinnStunde, 2) + ' €';
-  document.getElementById('bruttomarge').textContent  = formatGermanNumber(bruttomarge, 2) + '%';
-  document.getElementById('zeitMonat').textContent    = roundUpHours(zeitMonat) + ' Std.';
+  document.getElementById('bruttomarge').textContent = formatGermanNumber(bruttomarge, 2) + '%';
+  document.getElementById('zeitMonat').textContent = roundUpHours(zeitMonat) + ' Std.';
 
-  document.getElementById('umsatzStundeInput').value =
-    isFinite(umsatzStunde) ? umsatzStunde.toFixed(2) : '';
-  document.getElementById('gewinnStundeInput').value =
-    isFinite(gewinnStunde) ? gewinnStunde.toFixed(2) : '';
+  document.getElementById('umsatzStundeInput').value = isFinite(umsatzStunde) ? umsatzStunde.toFixed(2) : '';
+  document.getElementById('gewinnStundeInput').value = isFinite(gewinnStunde) ? gewinnStunde.toFixed(2) : '';
 
   updateAllGauges();
 }
@@ -868,10 +851,10 @@ function calculateScores() {
   const sg3 = parseFloat(document.getElementById('sg-wettbewerb').value) || 1;
   const sgAvg = (sg1 + sg2 + sg3) / 3;
 
-  categoryScores.pricing   = pricingAvg;
-  categoryScores.kosten    = costAvg;
-  categoryScores.zeit      = wcAvg;
-  categoryScores.profit    = (procAvg + sgAvg) / 2;
+  categoryScores.pricing = pricingAvg;
+  categoryScores.kosten = costAvg;
+  categoryScores.zeit = wcAvg;
+  categoryScores.profit = (procAvg + sgAvg) / 2;
   categoryScores.strategic = sgAvg;
 
   updateAllGauges();
@@ -880,34 +863,36 @@ function calculateScores() {
 function createGauge(elementId, value, max, reverse = false) {
   const element = document.getElementById(elementId);
   if (!element) return;
-  const safeMax = max > 0 ? max : 1;
-  const percentage = Math.min(100, (value / safeMax) * 100);
 
-  const startColor = '#ff4b3a';   // rosso
-  const midColor   = '#f6c651';   // giallo
-  const endColor   = '#4caf50';   // verde
+  const safeMax = max > 0 ? max : 1;
+  let percentage = Math.min(100, Math.max(0, (value / safeMax) * 100));
+
+  if (reverse) {
+    percentage = Math.max(0, 100 - percentage);
+  }
+
+  const startColor = reverse ? '#4caf50' : '#ff4b3a';
+  const midColor   = '#f6c651';
+  const endColor   = reverse ? '#ff4b3a' : '#4caf50';
 
   const svg = `
     <svg viewBox="0 0 200 120">
       <defs>
         <linearGradient id="grad-${elementId}" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   style="stop-color:${startColor};stop-opacity:1" />
-          <stop offset="50%"  style="stop-color:${midColor};stop-opacity:1" />
+          <stop offset="0%" style="stop-color:${startColor};stop-opacity:1" />
+          <stop offset="50%" style="stop-color:${midColor};stop-opacity:1" />
           <stop offset="100%" style="stop-color:${endColor};stop-opacity:1" />
         </linearGradient>
       </defs>
-      <!-- bordo gold dietro -->
       <path d="M 20 100 A 80 80 0 0 1 180 100"
             fill="none" stroke="#e7c879" stroke-width="24"
             stroke-linecap="round" />
-      <!-- arco colored -->
       <path d="M 20 100 A 80 80 0 0 1 180 100"
             fill="none" stroke="url(#grad-${elementId})" stroke-width="16"
             stroke-dasharray="${percentage * 2.51}, 1000"
             stroke-linecap="round" />
       <text x="100" y="90" text-anchor="middle"
-            fill="#f5d88c" font-size="28" font-weight="bold"
-            style="text-shadow:0 2px 4px rgba(0,0,0,0.8);">
+            fill="#f5d88c" font-size="28" font-weight="bold">
         ${formatGermanNumber(value, value < 10 ? 1 : 0)}
       </text>
     </svg>`;
@@ -917,9 +902,11 @@ function createGauge(elementId, value, max, reverse = false) {
 function createLeakageGauge(elementId, value) {
   const element = document.getElementById(elementId);
   if (!element) return;
+
   const percentage = Math.min(Math.max(((value - 1) / 4) * 100, 0), 100);
   const hue = 120 - (percentage * 1.2);
   const color = `hsl(${hue}, 70%, 50%)`;
+
   const svg = `
     <svg viewBox="0 0 200 120">
       <path d="M 20 100 A 80 80 0 0 1 180 100"
@@ -999,11 +986,11 @@ function getValues() {
 }
 
 function updateAllGauges() {
-  createLeakageGauge('gauge-pricing',        categoryScores.pricing);
+  createLeakageGauge('gauge-pricing', categoryScores.pricing);
   createLeakageGauge('gauge-zeit-effizienz', categoryScores.zeit);
-  createLeakageGauge('gauge-kosten',         categoryScores.kosten);
-  createLeakageGauge('gauge-profit',         categoryScores.profit);
-  createLeakageGauge('gauge-strategic',      categoryScores.strategic);
+  createLeakageGauge('gauge-kosten', categoryScores.kosten);
+  createLeakageGauge('gauge-profit', categoryScores.profit);
+  createLeakageGauge('gauge-strategic', categoryScores.strategic);
 
   const sp = document.getElementById('status-pricing');
   const sz = document.getElementById('status-zeit');
@@ -1018,24 +1005,58 @@ function updateAllGauges() {
   if (ss) ss.textContent = getLeakageStatus(categoryScores.strategic);
 
   const vals = getValues();
-
   const avgUmsatzKategorie = parseFloat(document.getElementById('avgUmsatzKategorie').value) || 0;
   const avgGewinnKategorie = parseFloat(document.getElementById('avgGewinnKategorie').value) || 0;
 
-  const maxUmsatzStunde = avgUmsatzKategorie > 0 ? avgUmsatzKategorie : vals.umsatzStunde || 1;
-  const maxGewinnStunde = avgGewinnKategorie > 0 ? avgGewinnKategorie : vals.gewinnStunde || 1;
+  const maxUmsatzStunde = avgUmsatzKategorie > 0 ? avgUmsatzKategorie : (vals.umsatzStunde || 1);
+  const maxGewinnStunde = avgGewinnKategorie > 0 ? avgGewinnKategorie : (vals.gewinnStunde || 1);
 
   createGauge('gauge-umsatz-stunde', vals.umsatzStunde, maxUmsatzStunde, false);
   createGauge('gauge-gewinn-stunde', vals.gewinnStunde, maxGewinnStunde, false);
-  createGauge('gauge-bruttomarge',   vals.bruttomarge, 100, false);
-  createGauge('gauge-umsatz-monat',  vals.umsatzMonat, 5000, false);
-  createGauge('gauge-deckung',       vals.deckungsbeitrag, 5000, false);
-  createGauge('gauge-zeit-monat',    vals.zeitMonat, 220, true);
+  createGauge('gauge-bruttomarge', vals.bruttomarge, 100, false);
+  createGauge('gauge-umsatz-monat', vals.umsatzMonat, 5000, false);
+  createGauge('gauge-deckung', vals.deckungsbeitrag, 5000, false);
+  createGauge('gauge-zeit-monat', vals.zeitMonat, 220, true);
 
-  createDoublePercentGauge('gauge-umsatz-compare',
-    vals.umsatzStunde, avgUmsatzKategorie);
-  createDoublePercentGauge('gauge-gewinn-compare',
-    vals.gewinnStunde, avgGewinnKategorie);
+  createDoublePercentGauge('gauge-umsatz-compare', vals.umsatzStunde, avgUmsatzKategorie);
+  createDoublePercentGauge('gauge-gewinn-compare', vals.gewinnStunde, avgGewinnKategorie);
+}
+
+function renderReportGauges() {
+  const vals = getValues();
+  const avgUmsatzKategorie = parseFloat(document.getElementById('avgUmsatzKategorie').value) || 0;
+  const avgGewinnKategorie = parseFloat(document.getElementById('avgGewinnKategorie').value) || 0;
+
+  const maxUmsatzStunde = avgUmsatzKategorie > 0 ? avgUmsatzKategorie : (vals.umsatzStunde || 1);
+  const maxGewinnStunde = avgGewinnKategorie > 0 ? avgGewinnKategorie : (vals.gewinnStunde || 1);
+
+  createLeakageGauge('report-gauge-pricing', categoryScores.pricing);
+  createLeakageGauge('report-gauge-zeit', categoryScores.zeit);
+  createLeakageGauge('report-gauge-kosten', categoryScores.kosten);
+  createLeakageGauge('report-gauge-profit', categoryScores.profit);
+  createLeakageGauge('report-gauge-strategic', categoryScores.strategic);
+
+  createGauge('report-gauge-umsatz-stunde', vals.umsatzStunde, maxUmsatzStunde, false);
+  createGauge('report-gauge-gewinn-stunde', vals.gewinnStunde, maxGewinnStunde, false);
+  createGauge('report-gauge-bruttomarge', vals.bruttomarge, 100, false);
+  createGauge('report-gauge-umsatz-monat', vals.umsatzMonat, 5000, false);
+  createGauge('report-gauge-deckung', vals.deckungsbeitrag, 5000, false);
+  createGauge('report-gauge-zeit-monat', vals.zeitMonat, 220, true);
+
+  createDoublePercentGauge('report-gauge-umsatz-compare', vals.umsatzStunde, avgUmsatzKategorie);
+  createDoublePercentGauge('report-gauge-gewinn-compare', vals.gewinnStunde, avgGewinnKategorie);
+
+  const s1 = document.getElementById('report-status-pricing');
+  const s2 = document.getElementById('report-status-zeit');
+  const s3 = document.getElementById('report-status-kosten');
+  const s4 = document.getElementById('report-status-profit');
+  const s5 = document.getElementById('report-status-strategic');
+
+  if (s1) s1.textContent = getLeakageStatus(categoryScores.pricing);
+  if (s2) s2.textContent = getLeakageStatus(categoryScores.zeit);
+  if (s3) s3.textContent = getLeakageStatus(categoryScores.kosten);
+  if (s4) s4.textContent = getLeakageStatus(categoryScores.profit);
+  if (s5) s5.textContent = getLeakageStatus(categoryScores.strategic);
 }
 
 function updateReport() {
@@ -1065,29 +1086,28 @@ function updateReport() {
   const revenueBaseYear = vals.umsatzMonat * 12;
   const weights = {
     pricing: 0.30,
-    kosten:  0.25,
+    kosten: 0.25,
     working: 0.20,
     process: 0.15,
     strategic: 0.10
   };
 
   const pricingScore   = categoryScores.pricing || 1;
-  const costScore      = categoryScores.kosten  || 1;
-  const workingScore   = categoryScores.zeit    || 1;
-  const processScore   = 3;
-  const strategicScore = 3;
+  const costScore      = categoryScores.kosten || 1;
+  const workingScore   = categoryScores.zeit || 1;
+  const processScore   = categoryScores.profit || 1;
+  const strategicScore = categoryScores.strategic || 1;
 
   function estimateLeak(score, weight) {
     const normalized = (score - 1) / 4;
     return revenueBaseYear * weight * normalized;
   }
 
-  const estPricingLeak   = estimateLeak(pricingScore,   weights.pricing);
-  const estCostLeak      = estimateLeak(costScore,      weights.kosten);
-  const estWorkingLeak   = estimateLeak(workingScore,   weights.working);
-  const estProcessLeak   = estimateLeak(processScore,   weights.process);
+  const estPricingLeak   = estimateLeak(pricingScore, weights.pricing);
+  const estCostLeak      = estimateLeak(costScore, weights.kosten);
+  const estWorkingLeak   = estimateLeak(workingScore, weights.working);
+  const estProcessLeak   = estimateLeak(processScore, weights.process);
   const estStrategicLeak = estimateLeak(strategicScore, weights.strategic);
-
   const totalLeak = estPricingLeak + estCostLeak + estWorkingLeak + estProcessLeak + estStrategicLeak;
 
   const leakageBreakdown = `
@@ -1190,6 +1210,92 @@ function updateReport() {
     </p>
   `;
 
+  const reportGauges = `
+    <h3 style="color:#d4af37; margin:30px 0 10px 0;">6. Gauge Übersicht</h3>
+
+    <div class="category-gauges">
+      <h3 class="subsection-title">Leakage-Kategorien Analyse</h3>
+      <div class="gauge-container">
+        <div class="gauge-box">
+          <h3>Preisgestaltung</h3>
+          <div class="gauge" id="report-gauge-pricing"></div>
+          <div class="gauge-status" id="report-status-pricing">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Zeiteffizienz</h3>
+          <div class="gauge" id="report-gauge-zeit"></div>
+          <div class="gauge-status" id="report-status-zeit">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Kostenmanagement</h3>
+          <div class="gauge" id="report-gauge-kosten"></div>
+          <div class="gauge-status" id="report-status-kosten">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Profitabilität</h3>
+          <div class="gauge" id="report-gauge-profit"></div>
+          <div class="gauge-status" id="report-status-profit">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Strategic Gap</h3>
+          <div class="gauge" id="report-gauge-strategic"></div>
+          <div class="gauge-status" id="report-status-strategic">Optimal</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="revenue-gauges">
+      <h3 class="subsection-title">Umsatz & Gewinn Metriken</h3>
+      <div class="gauge-container">
+        <div class="gauge-box">
+          <h3>Umsatz/Stunde</h3>
+          <div class="gauge" id="report-gauge-umsatz-stunde"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Gewinn/Stunde</h3>
+          <div class="gauge" id="report-gauge-gewinn-stunde"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Bruttomarge</h3>
+          <div class="gauge" id="report-gauge-bruttomarge"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Umsatz/Monat</h3>
+          <div class="gauge" id="report-gauge-umsatz-monat"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Deckungsbeitrag</h3>
+          <div class="gauge" id="report-gauge-deckung"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Zeit/Monat</h3>
+          <div class="gauge" id="report-gauge-zeit-monat"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Umsatz/Stunde – Leistung vs Kategorie</h3>
+          <div class="gauge" id="report-gauge-umsatz-compare"></div>
+          <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Gewinn/Stunde – Leistung vs Kategorie</h3>
+          <div class="gauge" id="report-gauge-gewinn-compare"></div>
+          <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
+        </div>
+      </div>
+    </div>
+  `;
+
   document.getElementById('reportContent').innerHTML = `
     <h3 style="color:#d4af37; margin-bottom:10px;">1. Executive Summary</h3>
     ${execSummary}
@@ -1205,7 +1311,11 @@ function updateReport() {
 
     <h3 style="color:#d4af37; margin:30px 0 10px 0;">5. Action Plan</h3>
     ${actionPlan}
+
+    ${reportGauges}
   `;
+
+  renderReportGauges();
 }
 
 function showAddServiceModal() {
@@ -1261,6 +1371,7 @@ function deleteService(index) {
 function renderServiceList() {
   const list = document.getElementById('serviceList');
   list.innerHTML = '';
+
   services.forEach((service, index) => {
     const item = document.createElement('div');
     item.className = 'service-item';
@@ -1278,10 +1389,8 @@ function renderServiceList() {
   });
 }
 
-document.getElementById('avgUmsatzKategorie')
-  .addEventListener('input', updateAllGauges);
-document.getElementById('avgGewinnKategorie')
-  .addEventListener('input', updateAllGauges);
+document.getElementById('avgUmsatzKategorie').addEventListener('input', updateAllGauges);
+document.getElementById('avgGewinnKategorie').addEventListener('input', updateAllGauges);
 </script>
 </body>
 </html>
