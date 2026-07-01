@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leak Finder - Audit Engine v13.2.3</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #e0e0e0;
+}
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.login-box {
+  background: #2a2a2a;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 2px solid #d4af37;
+}
+.login-box h2 {
+  color: #d4af37;
+  margin-bottom: 25px;
+  text-align: center;
+}
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: #d4af37;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.login-box button:hover { background: #f0c14b; }
+
+.app-container { display: none; }
+.header {
+  background: #1a1a1a;
+  padding: 20px;
+  border-bottom: 3px solid #d4af37;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header h1 { color: #d4af37; font-size: 28px; }
+.logout-btn {
+  padding: 10px 20px;
+  background: #d4af37;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.logout-btn:hover { background: #f0c14b; }
+
+.nav {
+  background: #2a2a2a;
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #444;
+  flex-wrap: wrap;
+}
+.nav-btn {
+  padding: 12px 24px;
+  background: #3a3a3a;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.nav-btn:hover { background: #d4af37; color: #1a1a1a; }
+.nav-btn.active { background: #d4af37; color: #1a1a1a; font-weight: bold; }
+
+.content {
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.section { display: none; }
+.section.active { display: block; }
+
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+.kundendaten-grid-2x5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.input-box {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+.input-box label {
+  display: block;
+  color: #d4af37;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.input-box input, .input-box select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+.input-box input:focus, .input-box select:focus {
+  outline: none;
+  border-color: #d4af37;
+}
+
+.gauge-box .gauge svg .gauge-value-text,
+.gauge-box .gauge svg .gauge-arc-base,
+.gauge-box .gauge svg .gauge-arc-gold {
+  animation: goldPulse 5.8s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.gauge-box .gauge svg .gauge-value-text {
+  filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.18));
+}
+
+@keyframes goldPulse {
+  0% {
+    opacity: 0.96;
+    filter: drop-shadow(0 0 0px rgba(212, 175, 55, 0))
+            drop-shadow(0 0 0px rgba(245, 216, 140, 0));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.28))
+            drop-shadow(0 0 12px rgba(245, 216, 140, 0.16));
+  }
+  100% {
+    opacity: 0.96;
+    filter: drop-shadow(0 0 0px rgba(212, 175, 55, 0))
+            drop-shadow(0 0 0px rgba(245, 216, 140, 0));
+  }
+}
+
+.gauge-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin: 30px 0;
+}
+.gauge-box {
+  background: linear-gradient(145deg, #3b3224 0%, #816843 40%, #c9a468 100%);
+  padding: 25px;
+  border-radius: 16px;
+  border: 1px solid #e0c27a;
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.gauge-box::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -35%;
+  width: 55%;
+  height: 140%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 248, 210, 0.00) 20%,
+    rgba(255, 248, 210, 0.10) 38%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 248, 210, 0.10) 62%,
+    rgba(255, 248, 210, 0.00) 80%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-180%) skewX(-22deg);
+  pointer-events: none;
+  z-index: 0;
+  animation: goldShineSweep 12s ease-in-out infinite;
+  filter: blur(1px);
+  opacity: 0.65;
+}
+
+.gauge-box > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes goldShineSweep {
+  0% {
+    transform: translateX(-180%) skewX(-22deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.0;
+  }
+  18% {
+    opacity: 0.85;
+  }
+  45% {
+    transform: translateX(320%) skewX(-22deg);
+    opacity: 0.55;
+  }
+  55% {
+    transform: translateX(320%) skewX(-22deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(320%) skewX(-22deg);
+    opacity: 0;
+  }
+}
+.gauge-box h3 {
+  color: #f5d88c;
+  margin-bottom: 12px;
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+.gauge-label {
+  font-size: 11px;
+  color: #f0e3c0;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+.gauge { width: 100%; height: 200px; position: relative; }
+.gauge svg { width: 100%; height: 100%; }
+.gauge-label { font-size: 12px; color: #999; margin-top: 5px; }
+.gauge-status {
+  font-size: 14px;
+  color: #e0e0e0;
+  margin-top: 8px;
+  font-weight: bold;
+}
+.category-gauges { margin-bottom: 40px; }
+
+.revenue-gauges {
+  margin-top: 40px;
+  padding: 30px 20px;
+  border-top: 2px solid #e0c27a;
+  background: radial-gradient(circle at top left, #403531 0%, #1a1a1a 50%, #101010 100%);
+}
+.section-title, .subsection-title {
+  color: #f5d88c;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+.subsection-title {
+  color: #f0c14b;
+  font-size: 20px;
+  margin: 30px 0 20px 0;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+.result-box {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #d4af37;
+}
+.result-box h4 {
+  color: #d4af37;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.result-box .value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+.scoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+.scoring-box {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+.scoring-box h4 {
+  color: #d4af37;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+.scoring-box label {
+  display: block;
+  color: #bbb;
+  margin: 10px 0 5px 0;
+  font-size: 13px;
+}
+.scoring-box select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.weight-badge {
+  display: inline-block;
+  background: #d4af37;
+  color: #1a1a1a;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+button.primary-btn {
+  padding: 12px 30px;
+  background: #d4af37;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 10px 5px;
+}
+button.primary-btn:hover { background: #f0c14b; }
+button.secondary-btn {
+  padding: 12px 30px;
+  background: #3a3a3a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 10px 5px;
+}
+button.secondary-btn:hover { background: #4a4a4a; }
+
+.service-list {
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+.service-item {
+  background: #1a1a1a;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.service-item .info { flex: 1; min-width: 200px; }
+.service-item .info h4 { color: #d4af37; margin-bottom: 5px; }
+.service-item .info p { color: #999; font-size: 13px; }
+.service-item .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.service-item .actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.service-item .actions .edit-btn { background: #2196F3; color: white; }
+.service-item .actions .delete-btn { background: #f44336; color: white; }
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+}
+.modal.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: #2a2a2a;
+  padding: 30px;
+  border-radius: 12px;
+  border: 2px solid #d4af37;
+  max-width: 500px;
+  width: 90%;
+}
+.modal-content h3 {
+  color: #d4af37;
+  margin-bottom: 20px;
+}
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+.modal-content .modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 10mm 12mm 10mm;
+}
+
+@media print {
+  html, body {
+    width: 210mm;
+    min-height: 297mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10.5pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+.gauge-box::before,
+.gauge-box .gauge svg,
+.gauge-box .gauge svg .gauge-value-text,
+.gauge-box .gauge svg .gauge-arc-base,
+.gauge-box .gauge svg .gauge-arc-gold {
+  animation: none !important;
+  filter: none !important;
+}
+
+  .login-container,
+  .header,
+  .nav,
+  .logout-btn,
+  .primary-btn,
+  #kundendaten,
+  #bewertung,
+  #dashboard,
+  #einstellungen,
+  .modal {
+    display: none !important;
+  }
+
+  .app-container,
+  .content,
+  #bericht,
+  #reportContent {
+    display: block !important;
+  }
+
+  .app-container {
+    width: 100%;
+    background: #ffffff !important;
+  }
+
+  .content {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #bericht {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #bericht .section-title {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-size: 18pt !important;
+    margin: 0 0 8mm 0 !important;
+  }
+
+  #reportContent {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #000000 !important;
+  }
+
+  #reportContent h3,
+  #reportContent .subsection-title {
+    color: #000000 !important;
+    text-shadow: none !important;
+    page-break-after: avoid;
+    break-after: avoid;
+    margin-top: 8mm !important;
+    margin-bottom: 3mm !important;
+  }
+
+  #reportContent p,
+  #reportContent li,
+  #reportContent td,
+  #reportContent th {
+    color: #000000 !important;
+  }
+
+  .results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 4mm !important;
+    margin: 4mm 0 6mm 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .result-box {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #999 !important;
+    border-left: 3px solid #666 !important;
+    box-shadow: none !important;
+    padding: 4mm !important;
+    border-radius: 3mm !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .result-box h4 {
+    color: #000000 !important;
+    font-size: 9pt !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .result-box .value {
+    color: #000000 !important;
+    font-size: 16pt !important;
+  }
+
+  .category-gauges,
+  .revenue-gauges {
+    margin: 6mm 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .gauge-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 4mm !important;
+    margin: 4mm 0 6mm 0 !important;
+    align-items: start !important;
+  }
+
+  .gauge-box {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+    border-radius: 3mm !important;
+    padding: 3.5mm !important;
+    min-height: 63mm !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .gauge-box h3 {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .gauge {
+    height: 42mm !important;
+    width: 100% !important;
+  }
+
+.gauge svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gauge svg path,
+.gauge svg text {
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+.gauge-box .gauge svg {
+  animation: gaugeFloatGlow 6.5s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes gaugeFloatGlow {
+  0% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(212, 175, 55, 0))
+            drop-shadow(0 0 0px rgba(245, 216, 140, 0));
+  }
+  25% {
+    transform: translateY(-1px) scale(1.003);
+    filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.18))
+            drop-shadow(0 0 8px rgba(245, 216, 140, 0.10));
+  }
+  50% {
+    transform: translateY(0px) scale(1.006);
+    filter: drop-shadow(0 0 7px rgba(212, 175, 55, 0.28))
+            drop-shadow(0 0 14px rgba(245, 216, 140, 0.16));
+  }
+  75% {
+    transform: translateY(-1px) scale(1.003);
+    filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.16))
+            drop-shadow(0 0 8px rgba(245, 216, 140, 0.08));
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 0px rgba(212, 175, 55, 0))
+            drop-shadow(0 0 0px rgba(245, 216, 140, 0));
+  }
+}
+  .gauge-status,
+  .gauge-label {
+    color: #000000 !important;
+    font-size: 8.5pt !important;
+    margin-top: 1.5mm !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 3mm !important;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  th, td {
+    color: #000000 !important;
+    border-color: #999 !important;
+    font-size: 9pt !important;
+  }
+
+  ul {
+    margin-left: 5mm !important;
+  }
+
+  .gauge-box,
+  .result-box,
+  table,
+  ul,
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="login-container" id="loginContainer">
+  <div class="login-box">
+    <h2>🔐 Leak Finder Login</h2>
+    <input type="text" id="username" placeholder="Benutzername" />
+    <input type="password" id="password" placeholder="Passwort" />
+    <button onclick="login()">Anmelden</button>
+  </div>
+</div>
+
+<div class="app-container" id="appContainer">
+  <div class="header">
+    <h1>💧 Leak Finder - Business Audit Engine v13.2.4 (01.07.2026)</h1>
+    <button class="logout-btn" onclick="logout()">Abmelden</button>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="showSection('kundendaten', this)">Kundendaten</button>
+    <button class="nav-btn" onclick="showSection('bewertung', this)">Leakage-Bewertung</button>
+    <button class="nav-btn" onclick="showSection('dashboard', this)">Dashboard</button>
+    <button class="nav-btn" onclick="showSection('bericht', this)">Bericht</button>
+    <button class="nav-btn" onclick="showSection('einstellungen', this)">Einstellungen</button>
+  </div>
+
+  <div class="content">
+    <!-- KUNDENDATEN -->
+    <div id="kundendaten" class="section active">
+      <h2 class="section-title">📋 Kundendaten & Eingabedaten</h2>
+
+      <div class="input-grid kundendaten-grid-2x5">
+        <div class="input-box">
+          <label>Leistung</label>
+          <input type="text" id="leistung" placeholder="Geben Sie die Leistung ein">
+        </div>
+
+        <div class="input-box">
+          <label>Preis/Occ</label>
+          <input type="number" id="preis" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Dir. Kosten/Occ</label>
+          <input type="number" id="dirKosten" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Anz. pro Monat</label>
+          <input type="number" id="anzahl" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Umsatz pro Stunde € (berechnet)</label>
+          <input type="number" id="umsatzStundeInput" readonly>
+        </div>
+
+        <div class="input-box">
+          <label>Sales Akq. (Min.)</label>
+          <input type="number" id="salesacq" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Preparation (Min.)</label>
+          <input type="number" id="preparation" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Delivery (Min.)</label>
+          <input type="number" id="delivery" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Follow-Up (Min.)</label>
+          <input type="number" id="followup" oninput="calculate()">
+        </div>
+
+        <div class="input-box">
+          <label>Gewinn pro Stunde € (berechnet)</label>
+          <input type="number" id="gewinnStundeInput" readonly>
+        </div>
+      </div>
+
+      <div class="input-grid">
+        <div class="input-box">
+          <label for="avgUmsatzKategorie">Umsatz pro Stunde € (Kategorie)</label>
+          <input type="number" id="avgUmsatzKategorie" value="35" step="1">
+        </div>
+
+        <div class="input-box">
+          <label for="avgGewinnKategorie">Gewinn € pro Stunde (Kategorie)</label>
+          <input type="number" id="avgGewinnKategorie" value="10" step="1">
+        </div>
+      </div>
+
+      <h3 class="subsection-title">📊 Berechnete Ergebnisse</h3>
+      <div class="results-grid">
+        <div class="result-box"><h4>Zeit pro Auftrag</h4><div class="value" id="totalTime">0 Std.</div></div>
+        <div class="result-box"><h4>Umsatz/Monat</h4><div class="value" id="umsatzMonat">0 €</div></div>
+        <div class="result-box"><h4>Dir.Kosten/Monat</h4><div class="value" id="kostenMonat">0 €</div></div>
+        <div class="result-box"><h4>Deckungsbeitrag</h4><div class="value" id="deckungsbeitrag">0 €</div></div>
+        <div class="result-box"><h4>Umsatz/Stunde</h4><div class="value" id="umsatzStunde">0 €</div></div>
+        <div class="result-box"><h4>Gewinn/Stunde</h4><div class="value" id="gewinnStunde">0 €</div></div>
+        <div class="result-box"><h4>Bruttomarge</h4><div class="value" id="bruttomarge">0%</div></div>
+        <div class="result-box"><h4>Zeit/Monat</h4><div class="value" id="zeitMonat">0 Std.</div></div>
+      </div>
+    </div>
+
+    <!-- LEAKAGE-BEWERTUNG -->
+    <div id="bewertung" class="section">
+      <h2 class="section-title">🎯 Leakage-Bewertung</h2>
+      <p style="color: #bbb; margin-bottom: 20px;">
+        Bewerten Sie jeden Bereich auf einer Skala von 1 bis 5
+      </p>
+
+      <div class="scoring-grid">
+        <div class="scoring-box">
+          <h4>Pricing <span class="weight-badge">30%</span></h4>
+          <label>Preisgestaltung</label>
+          <select id="pricing-preisgestaltung" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Preisstrategie</label>
+          <select id="pricing-preisstrategie" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Preisdurchsetzung</label>
+          <select id="pricing-preisdurchsetzung" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+        </div>
+
+        <div class="scoring-box">
+          <h4>Cost <span class="weight-badge">25%</span></h4>
+          <label>Direkte Kosten</label>
+          <select id="cost-direkte" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Indirekte Kosten</label>
+          <select id="cost-indirekte" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Kostenstruktur</label>
+          <select id="cost-struktur" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+        </div>
+
+        <div class="scoring-box">
+          <h4>Working Capital <span class="weight-badge">20%</span></h4>
+          <label>Liquidität</label>
+          <select id="wc-liquiditaet" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Zahlungsbedingungen</label>
+          <select id="wc-zahlungsbedingungen" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Cashflow-Management</label>
+          <select id="wc-cashflow" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+        </div>
+
+        <div class="scoring-box">
+          <h4>Process Inefficiency <span class="weight-badge">15%</span></h4>
+          <label>Prozessqualität</label>
+          <select id="proc-qualitaet" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Automatisierung</label>
+          <select id="proc-automatisierung" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Durchlaufzeiten</label>
+          <select id="proc-durchlaufzeiten" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+        </div>
+
+        <div class="scoring-box">
+          <h4>Strategic Gap <span class="weight-badge">10%</span></h4>
+          <label>Strategische Ausrichtung</label>
+          <select id="sg-ausrichtung" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Marktpositionierung</label>
+          <select id="sg-positionierung" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+
+          <label>Wettbewerbsvorteil</label>
+          <select id="sg-wettbewerb" onchange="calculateScores()">
+            <option value="1">1 - Kein Problem</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5 - Kritisch</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="section">
+      <h2 class="section-title">📊 Dashboard</h2>
+
+      <div class="category-gauges">
+        <h3 class="subsection-title">Leakage-Kategorien Analyse</h3>
+        <div class="gauge-container">
+          <div class="gauge-box">
+            <h3>Preisgestaltung</h3>
+            <div class="gauge" id="gauge-pricing"></div>
+            <div class="gauge-status" id="status-pricing">Optimal</div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Zeiteffizienz</h3>
+            <div class="gauge" id="gauge-zeit-effizienz"></div>
+            <div class="gauge-status" id="status-zeit">Optimal</div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Kostenmanagement</h3>
+            <div class="gauge" id="gauge-kosten"></div>
+            <div class="gauge-status" id="status-kosten">Optimal</div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Profitabilität</h3>
+            <div class="gauge" id="gauge-profit"></div>
+            <div class="gauge-status" id="status-profit">Optimal</div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Strategic Gap</h3>
+            <div class="gauge" id="gauge-strategic"></div>
+            <div class="gauge-status" id="status-strategic">Optimal</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="revenue-gauges">
+        <h3 class="subsection-title">Umsatz & Gewinn Metriken</h3>
+        <div class="gauge-container">
+          <div class="gauge-box">
+            <h3>Umsatz/Stunde</h3>
+            <div class="gauge" id="gauge-umsatz-stunde"></div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Gewinn/Stunde</h3>
+            <div class="gauge" id="gauge-gewinn-stunde"></div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Bruttomarge</h3>
+            <div class="gauge" id="gauge-bruttomarge"></div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Umsatz/Monat</h3>
+            <div class="gauge" id="gauge-umsatz-monat"></div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Deckungsbeitrag</h3>
+            <div class="gauge" id="gauge-deckung"></div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Zeit/Monat</h3>
+            <div class="gauge" id="gauge-zeit-monat"></div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Umsatz/Stunde – Leistung vs Kategorie</h3>
+            <div class="gauge" id="gauge-umsatz-compare"></div>
+            <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
+          </div>
+
+          <div class="gauge-box">
+            <h3>Gewinn/Stunde – Leistung vs Kategorie</h3>
+            <div class="gauge" id="gauge-gewinn-compare"></div>
+            <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BERICHT -->
+    <div id="bericht" class="section">
+      <h2 class="section-title">📄 Bericht PDF</h2>
+      <button class="primary-btn" onclick="window.print()">🖨️ Bericht drucken</button>
+      <div style="margin-top: 30px;" id="reportContent"></div>
+    </div>
+
+    <!-- EINSTELLUNGEN -->
+    <div id="einstellungen" class="section">
+      <h2 class="section-title">⚙️ Einstellungen</h2>
+      <h3 class="subsection-title">Leistungen verwalten</h3>
+      <button class="primary-btn" onclick="showAddServiceModal()">➕ Neue Leistung hinzufügen</button>
+      <div class="service-list" id="serviceList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="serviceModal">
+  <div class="modal-content">
+    <h3 id="modalTitle">Neue Leistung</h3>
+    <input type="text" id="modalServiceName" placeholder="Name der Leistung" />
+    <input type="number" id="modalServicePrice" placeholder="Preis" />
+    <input type="number" id="modalServiceCost" placeholder="Direktkosten" />
+    <div class="modal-buttons">
+      <button class="primary-btn" onclick="saveService()">Speichern</button>
+      <button class="secondary-btn" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let services = [
+  {name: '1:1 Strategie-Session', price: 1000, cost: 100},
+  {name: 'Workshop Halbtag',      price: 2500, cost: 300},
+  {name: 'Beratungspartnerschaft',price: 5000, cost: 500}
+];
+
+let editingIndex = -1;
+let categoryScores = {pricing: 1, zeit: 1, kosten: 1, profit: 1, strategic: 1};
+
+function formatGermanNumber(num, decimals = 2) {
+  const safeNum = Number(num) || 0;
+  const rounded = decimals === 0 ? Math.round(safeNum) : safeNum.toFixed(decimals);
+  const parts = rounded.toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return parts.join(',');
+}
+
+function formatHoursMinutes(hoursFloat) {
+  if (!isFinite(hoursFloat) || hoursFloat <= 0) return '0:00';
+  const totalMinutes = Math.round(hoursFloat * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const minutesStr = minutes.toString().padStart(2, '0');
+  return `${hours}:${minutesStr}`;
+}
+
+function roundUpHours(hours) {
+  return Math.ceil(Number(hours) || 0);
+}
+
+function getLeakageStatus(value) {
+  if (value >= 1.0 && value <= 1.6) return 'Optimal';
+  if (value >= 1.7 && value <= 2.6) return 'Gut';
+  if (value >= 2.7 && value <= 3.6) return 'Akzeptabel';
+  if (value >= 3.7 && value <= 4.5) return 'Problematisch';
+  if (value >= 4.6 && value <= 5.0) return 'Kritisch';
+  return 'Optimal';
+}
+
+function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  if (username === 'E.Voigt' && password === 'Leak#2026') {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+    renderServiceList();
+  } else {
+    alert('Ungültige Anmeldedaten');
+  }
+}
+
+function logout() {
+  document.getElementById('loginContainer').style.display = 'flex';
+  document.getElementById('appContainer').style.display = 'none';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+}
+
+function showSection(sectionId, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(sectionId).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  if (sectionId === 'dashboard') {
+    updateAllGauges();
+  } else if (sectionId === 'bericht') {
+    updateReport();
+  }
+}
+
+function calculate() {
+  const preis       = parseFloat(document.getElementById('preis').value) || 0;
+  const dirKosten   = parseFloat(document.getElementById('dirKosten').value) || 0;
+  const anzahl      = parseFloat(document.getElementById('anzahl').value) || 0;
+  const delivery    = parseFloat(document.getElementById('delivery').value) || 0;
+  const preparation = parseFloat(document.getElementById('preparation').value) || 0;
+  const followup    = parseFloat(document.getElementById('followup').value) || 0;
+  const salesacq    = parseFloat(document.getElementById('salesacq').value) || 0;
+
+  const totalTimeMin = delivery + preparation + followup + salesacq;
+  const totalTimeHrs = totalTimeMin / 60;
+  const umsatzMonat  = preis * anzahl;
+  const kostenMonat  = dirKosten * anzahl;
+  const deckungsbeitrag = umsatzMonat - kostenMonat;
+  const umsatzStunde    = totalTimeHrs > 0 ? preis / totalTimeHrs : 0;
+  const gewinnStunde    = totalTimeHrs > 0 ? (preis - dirKosten) / totalTimeHrs : 0;
+  const bruttomarge     = preis > 0 ? ((preis - dirKosten) / preis) * 100 : 0;
+  const zeitMonat       = (totalTimeMin * anzahl) / 60;
+
+  document.getElementById('totalTime').textContent = formatHoursMinutes(totalTimeHrs) + ' Std.';
+  document.getElementById('umsatzMonat').textContent = formatGermanNumber(umsatzMonat, 2) + ' €';
+  document.getElementById('kostenMonat').textContent = formatGermanNumber(kostenMonat, 2) + ' €';
+  document.getElementById('deckungsbeitrag').textContent = formatGermanNumber(deckungsbeitrag, 2) + ' €';
+  document.getElementById('umsatzStunde').textContent = formatGermanNumber(umsatzStunde, 2) + ' €';
+  document.getElementById('gewinnStunde').textContent = formatGermanNumber(gewinnStunde, 2) + ' €';
+  document.getElementById('bruttomarge').textContent = formatGermanNumber(bruttomarge, 2) + '%';
+  document.getElementById('zeitMonat').textContent = roundUpHours(zeitMonat) + ' Std.';
+
+  document.getElementById('umsatzStundeInput').value = isFinite(umsatzStunde) ? umsatzStunde.toFixed(2) : '';
+  document.getElementById('gewinnStundeInput').value = isFinite(gewinnStunde) ? gewinnStunde.toFixed(2) : '';
+
+  updateAllGauges();
+}
+
+function calculateScores() {
+  const p1 = parseFloat(document.getElementById('pricing-preisgestaltung').value) || 1;
+  const p2 = parseFloat(document.getElementById('pricing-preisstrategie').value) || 1;
+  const p3 = parseFloat(document.getElementById('pricing-preisdurchsetzung').value) || 1;
+  const pricingAvg = (p1 + p2 + p3) / 3;
+
+  const c1 = parseFloat(document.getElementById('cost-direkte').value) || 1;
+  const c2 = parseFloat(document.getElementById('cost-indirekte').value) || 1;
+  const c3 = parseFloat(document.getElementById('cost-struktur').value) || 1;
+  const costAvg = (c1 + c2 + c3) / 3;
+
+  const wc1 = parseFloat(document.getElementById('wc-liquiditaet').value) || 1;
+  const wc2 = parseFloat(document.getElementById('wc-zahlungsbedingungen').value) || 1;
+  const wc3 = parseFloat(document.getElementById('wc-cashflow').value) || 1;
+  const wcAvg = (wc1 + wc2 + wc3) / 3;
+
+  const pr1 = parseFloat(document.getElementById('proc-qualitaet').value) || 1;
+  const pr2 = parseFloat(document.getElementById('proc-automatisierung').value) || 1;
+  const pr3 = parseFloat(document.getElementById('proc-durchlaufzeiten').value) || 1;
+  const procAvg = (pr1 + pr2 + pr3) / 3;
+
+  const sg1 = parseFloat(document.getElementById('sg-ausrichtung').value) || 1;
+  const sg2 = parseFloat(document.getElementById('sg-positionierung').value) || 1;
+  const sg3 = parseFloat(document.getElementById('sg-wettbewerb').value) || 1;
+  const sgAvg = (sg1 + sg2 + sg3) / 3;
+
+  categoryScores.pricing = pricingAvg;
+  categoryScores.kosten = costAvg;
+  categoryScores.zeit = wcAvg;
+  categoryScores.profit = (procAvg + sgAvg) / 2;
+  categoryScores.strategic = sgAvg;
+
+  updateAllGauges();
+}
+
+function createGauge(elementId, value, max, reverse = false) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  const safeMax = max > 0 ? max : 1;
+  let percentage = Math.min(100, Math.max(0, (value / safeMax) * 100));
+
+  if (reverse) {
+    percentage = Math.max(0, 100 - percentage);
+  }
+
+  const startColor = reverse ? '#4caf50' : '#ff4b3a';
+  const midColor   = '#f6c651';
+  const endColor   = reverse ? '#ff4b3a' : '#4caf50';
+
+  const svg = `
+    <svg viewBox="0 0 200 120">
+      <defs>
+        <linearGradient id="grad-${elementId}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:${startColor};stop-opacity:1" />
+          <stop offset="50%" style="stop-color:${midColor};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${endColor};stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <path class="gauge-arc-base"
+            d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none" stroke="#e7c879" stroke-width="24"
+            stroke-linecap="round" />
+      <path class="gauge-arc-value"
+            d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none" stroke="url(#grad-${elementId})" stroke-width="16"
+            stroke-dasharray="${percentage * 2.51}, 1000"
+            stroke-linecap="round" />
+      <text class="gauge-value-text"
+            x="100" y="90" text-anchor="middle"
+            fill="#f5d88c" font-size="28" font-weight="bold">
+        ${formatGermanNumber(value, value < 10 ? 1 : 0)}
+      </text>
+    </svg>`;
+
+  element.innerHTML = svg;
+}
+function createLeakageGauge(elementId, value) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  const percentage = Math.min(Math.max(((value - 1) / 4) * 100, 0), 100);
+  const hue = 120 - (percentage * 1.2);
+  const color = `hsl(${hue}, 70%, 50%)`;
+
+  const svg = `
+    <svg viewBox="0 0 200 120">
+      <path class="gauge-arc-dark"
+            d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none" stroke="#333" stroke-width="20" />
+      <path class="gauge-arc-value"
+            d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none" stroke="${color}" stroke-width="20"
+            stroke-dasharray="${percentage * 2.51}, 1000"
+            stroke-linecap="round" />
+      <text class="gauge-value-text"
+            x="100" y="90" text-anchor="middle"
+            fill="#d4af37" font-size="32" font-weight="bold">
+        ${value.toFixed(1)}
+      </text>
+    </svg>`;
+
+  element.innerHTML = svg;
+}
+
+function createDoublePercentGauge(elementId, wertLeistung, wertKategorie) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  if (!wertKategorie || wertKategorie <= 0) {
+    el.innerHTML = '<svg viewBox="0 0 200 120"></svg>';
+    return;
+  }
+
+  const leistungPct = Math.max(0, Math.min(200, (wertLeistung / wertKategorie) * 100));
+  const kategoriePct = 100;
+
+const svg = `
+  <svg viewBox="0 0 200 120">
+    <path class="gauge-arc-dark"
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none" stroke="#333" stroke-width="20" />
+    <path class="gauge-arc-compare"
+          d="M 30 100 A 70 70 0 0 1 170 100"
+          fill="none" stroke="#888" stroke-width="14"
+          stroke-dasharray="${kategoriePct * 2.5}, 1000"
+          stroke-linecap="round" />
+    <path class="gauge-arc-gold"
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none" stroke="#d4af37" stroke-width="10"
+          stroke-dasharray="${leistungPct * 2.5}, 1000"
+          stroke-linecap="round" />
+    <text class="gauge-value-text"
+          x="100" y="70" text-anchor="middle"
+          fill="#d4af37" font-size="20" font-weight="bold">
+      ${formatGermanNumber(leistungPct, 1)} %
+    </text>
+    <text x="100" y="90" text-anchor="middle"
+          fill="#888" font-size="12">
+      Leistung vs Kategorie
+    </text>
+    <text x="100" y="108" text-anchor="middle"
+          fill="#bbb" font-size="11">
+      Kategorie: ${formatGermanNumber(wertKategorie, 2)} €/Std
+    </text>
+  </svg>`;
+
+  el.innerHTML = svg;
+}
+
+function getValues() {
+  const preis       = parseFloat(document.getElementById('preis').value) || 0;
+  const dirKosten   = parseFloat(document.getElementById('dirKosten').value) || 0;
+  const anzahl      = parseFloat(document.getElementById('anzahl').value) || 0;
+  const delivery    = parseFloat(document.getElementById('delivery').value) || 0;
+  const preparation = parseFloat(document.getElementById('preparation').value) || 0;
+  const followup    = parseFloat(document.getElementById('followup').value) || 0;
+  const salesacq    = parseFloat(document.getElementById('salesacq').value) || 0;
+
+  const totalTimeMin = delivery + preparation + followup + salesacq;
+  const totalTimeHrs = totalTimeMin / 60;
+  const umsatzMonat  = preis * anzahl;
+  const kostenMonat  = dirKosten * anzahl;
+  const deckungsbeitrag = umsatzMonat - kostenMonat;
+  const umsatzStunde    = totalTimeHrs > 0 ? preis / totalTimeHrs : 0;
+  const gewinnStunde    = totalTimeHrs > 0 ? (preis - dirKosten) / totalTimeHrs : 0;
+  const bruttomarge     = preis > 0 ? ((preis - dirKosten) / preis) * 100 : 0;
+  const zeitMonat       = (totalTimeMin * anzahl) / 60;
+
+  return { umsatzStunde, gewinnStunde, bruttomarge, umsatzMonat, deckungsbeitrag, zeitMonat };
+}
+
+function updateAllGauges() {
+  createLeakageGauge('gauge-pricing', categoryScores.pricing);
+  createLeakageGauge('gauge-zeit-effizienz', categoryScores.zeit);
+  createLeakageGauge('gauge-kosten', categoryScores.kosten);
+  createLeakageGauge('gauge-profit', categoryScores.profit);
+  createLeakageGauge('gauge-strategic', categoryScores.strategic);
+
+  const sp = document.getElementById('status-pricing');
+  const sz = document.getElementById('status-zeit');
+  const sk = document.getElementById('status-kosten');
+  const sf = document.getElementById('status-profit');
+  const ss = document.getElementById('status-strategic');
+
+  if (sp) sp.textContent = getLeakageStatus(categoryScores.pricing);
+  if (sz) sz.textContent = getLeakageStatus(categoryScores.zeit);
+  if (sk) sk.textContent = getLeakageStatus(categoryScores.kosten);
+  if (sf) sf.textContent = getLeakageStatus(categoryScores.profit);
+  if (ss) ss.textContent = getLeakageStatus(categoryScores.strategic);
+
+  const vals = getValues();
+  const avgUmsatzKategorie = parseFloat(document.getElementById('avgUmsatzKategorie').value) || 0;
+  const avgGewinnKategorie = parseFloat(document.getElementById('avgGewinnKategorie').value) || 0;
+
+  const maxUmsatzStunde = avgUmsatzKategorie > 0 ? avgUmsatzKategorie : (vals.umsatzStunde || 1);
+  const maxGewinnStunde = avgGewinnKategorie > 0 ? avgGewinnKategorie : (vals.gewinnStunde || 1);
+
+  createGauge('gauge-umsatz-stunde', vals.umsatzStunde, maxUmsatzStunde, false);
+  createGauge('gauge-gewinn-stunde', vals.gewinnStunde, maxGewinnStunde, false);
+  createGauge('gauge-bruttomarge', vals.bruttomarge, 100, false);
+  createGauge('gauge-umsatz-monat', vals.umsatzMonat, 5000, false);
+  createGauge('gauge-deckung', vals.deckungsbeitrag, 5000, false);
+  createGauge('gauge-zeit-monat', vals.zeitMonat, 220, true);
+
+  createDoublePercentGauge('gauge-umsatz-compare', vals.umsatzStunde, avgUmsatzKategorie);
+  createDoublePercentGauge('gauge-gewinn-compare', vals.gewinnStunde, avgGewinnKategorie);
+}
+
+function renderReportGauges() {
+  const vals = getValues();
+  const avgUmsatzKategorie = parseFloat(document.getElementById('avgUmsatzKategorie').value) || 0;
+  const avgGewinnKategorie = parseFloat(document.getElementById('avgGewinnKategorie').value) || 0;
+
+  const maxUmsatzStunde = avgUmsatzKategorie > 0 ? avgUmsatzKategorie : (vals.umsatzStunde || 1);
+  const maxGewinnStunde = avgGewinnKategorie > 0 ? avgGewinnKategorie : (vals.gewinnStunde || 1);
+
+  createLeakageGauge('report-gauge-pricing', categoryScores.pricing);
+  createLeakageGauge('report-gauge-zeit', categoryScores.zeit);
+  createLeakageGauge('report-gauge-kosten', categoryScores.kosten);
+  createLeakageGauge('report-gauge-profit', categoryScores.profit);
+  createLeakageGauge('report-gauge-strategic', categoryScores.strategic);
+
+  createGauge('report-gauge-umsatz-stunde', vals.umsatzStunde, maxUmsatzStunde, false);
+  createGauge('report-gauge-gewinn-stunde', vals.gewinnStunde, maxGewinnStunde, false);
+  createGauge('report-gauge-bruttomarge', vals.bruttomarge, 100, false);
+  createGauge('report-gauge-umsatz-monat', vals.umsatzMonat, 5000, false);
+  createGauge('report-gauge-deckung', vals.deckungsbeitrag, 5000, false);
+  createGauge('report-gauge-zeit-monat', vals.zeitMonat, 220, true);
+
+  createDoublePercentGauge('report-gauge-umsatz-compare', vals.umsatzStunde, avgUmsatzKategorie);
+  createDoublePercentGauge('report-gauge-gewinn-compare', vals.gewinnStunde, avgGewinnKategorie);
+
+  const s1 = document.getElementById('report-status-pricing');
+  const s2 = document.getElementById('report-status-zeit');
+  const s3 = document.getElementById('report-status-kosten');
+  const s4 = document.getElementById('report-status-profit');
+  const s5 = document.getElementById('report-status-strategic');
+
+  if (s1) s1.textContent = getLeakageStatus(categoryScores.pricing);
+  if (s2) s2.textContent = getLeakageStatus(categoryScores.zeit);
+  if (s3) s3.textContent = getLeakageStatus(categoryScores.kosten);
+  if (s4) s4.textContent = getLeakageStatus(categoryScores.profit);
+  if (s5) s5.textContent = getLeakageStatus(categoryScores.strategic);
+}
+
+function updateReport() {
+  const leistung = document.getElementById('leistung').value || '-';
+  const vals = getValues();
+
+  const execSummary = `
+    <p style="margin-bottom:8px;">
+      Dieser Bericht fasst die wichtigsten Ergebnisse des Profit-Leak-Audits für <strong>${leistung}</strong> zusammen.
+    </p>
+    <p style="margin-bottom:8px;">
+      Die aktuellen Kennzahlen zeigen ein jährliches Umsatzpotenzial und identifizieren die größten Leaks in Pricing, Kosten, Working Capital, Prozessen und Strategie.
+    </p>
+  `;
+
+  const keyMetrics = `
+    <div class="results-grid">
+      <div class="result-box"><h4>Umsatz/Monat</h4><div class="value">${formatGermanNumber(vals.umsatzMonat, 2)} €</div></div>
+      <div class="result-box"><h4>Deckungsbeitrag/Monat</h4><div class="value">${formatGermanNumber(vals.deckungsbeitrag, 2)} €</div></div>
+      <div class="result-box"><h4>Umsatz/Stunde</h4><div class="value">${formatGermanNumber(vals.umsatzStunde, 2)} €</div></div>
+      <div class="result-box"><h4>Gewinn/Stunde</h4><div class="value">${formatGermanNumber(vals.gewinnStunde, 2)} €</div></div>
+      <div class="result-box"><h4>Bruttomarge</h4><div class="value">${formatGermanNumber(vals.bruttomarge, 2)} %</div></div>
+      <div class="result-box"><h4>Zeit/Monat</h4><div class="value">${roundUpHours(vals.zeitMonat)} Std.</div></div>
+    </div>
+  `;
+
+  const revenueBaseYear = vals.umsatzMonat * 12;
+  const weights = {
+    pricing: 0.30,
+    kosten: 0.25,
+    working: 0.20,
+    process: 0.15,
+    strategic: 0.10
+  };
+
+  const pricingScore   = categoryScores.pricing || 1;
+  const costScore      = categoryScores.kosten || 1;
+  const workingScore   = categoryScores.zeit || 1;
+  const processScore   = categoryScores.profit || 1;
+  const strategicScore = categoryScores.strategic || 1;
+
+  function estimateLeak(score, weight) {
+    const normalized = (score - 1) / 4;
+    return revenueBaseYear * weight * normalized;
+  }
+
+  const estPricingLeak   = estimateLeak(pricingScore, weights.pricing);
+  const estCostLeak      = estimateLeak(costScore, weights.kosten);
+  const estWorkingLeak   = estimateLeak(workingScore, weights.working);
+  const estProcessLeak   = estimateLeak(processScore, weights.process);
+  const estStrategicLeak = estimateLeak(strategicScore, weights.strategic);
+  const totalLeak = estPricingLeak + estCostLeak + estWorkingLeak + estProcessLeak + estStrategicLeak;
+
+  const leakageBreakdown = `
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:8px; border-bottom:1px solid #555;">Leakage Category</th>
+          <th style="text-align:right; padding:8px; border-bottom:1px solid #555;">Score</th>
+          <th style="text-align:right; padding:8px; border-bottom:1px solid #555;">Weight</th>
+          <th style="text-align:right; padding:8px; border-bottom:1px solid #555;">Estimated Annual Leak</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:6px;">Pricing</td>
+          <td style="padding:6px; text-align:right;">${pricingScore.toFixed(1)}</td>
+          <td style="padding:6px; text-align:right;">30%</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estPricingLeak, 0)} €</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Cost</td>
+          <td style="padding:6px; text-align:right;">${costScore.toFixed(1)}</td>
+          <td style="padding:6px; text-align:right;">25%</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estCostLeak, 0)} €</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Working Capital</td>
+          <td style="padding:6px; text-align:right;">${workingScore.toFixed(1)}</td>
+          <td style="padding:6px; text-align:right;">20%</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estWorkingLeak, 0)} €</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Process Inefficiency</td>
+          <td style="padding:6px; text-align:right;">${processScore.toFixed(1)}</td>
+          <td style="padding:6px; text-align:right;">15%</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estProcessLeak, 0)} €</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">Strategic Gap</td>
+          <td style="padding:6px; text-align:right;">${strategicScore.toFixed(1)}</td>
+          <td style="padding:6px; text-align:right;">10%</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estStrategicLeak, 0)} €</td>
+        </tr>
+        <tr>
+          <td style="padding:8px; font-weight:bold; border-top:1px solid #555;">Total geschätztes Sparpotenzial</td>
+          <td></td><td></td>
+          <td style="padding:8px; text-align:right; font-weight:bold; border-top:1px solid #555;">
+            ${formatGermanNumber(totalLeak, 0)} €
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  const top3Opportunities = `
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:8px; border-bottom:1px solid #555;">#</th>
+          <th style="text-align:left; padding:8px; border-bottom:1px solid #555;">Leak Type</th>
+          <th style="text-align:left; padding:8px; border-bottom:1px solid #555;">Service / Bereich</th>
+          <th style="text-align:right; padding:8px; border-bottom:1px solid #555;">Estimated Annual Leak</th>
+          <th style="text-align:left; padding:8px; border-bottom:1px solid #555;">Recommended Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:6px;">1</td>
+          <td style="padding:6px;">Pricing Time Leak</td>
+          <td style="padding:6px;">Hochmargige Kernleistung</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estPricingLeak, 0)} €</td>
+          <td style="padding:6px;">Preisniveau anheben und Zeitinput straffen.</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">2</td>
+          <td style="padding:6px;">Cost Margin Leak</td>
+          <td style="padding:6px;">Kostenintensive Leistungen</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estCostLeak, 0)} €</td>
+          <td style="padding:6px;">Direktkosten senken oder Paket neu bündeln.</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">3</td>
+          <td style="padding:6px;">Working Capital Leak</td>
+          <td style="padding:6px;">Zahlungsbedingungen & Cashflow</td>
+          <td style="padding:6px; text-align:right;">${formatGermanNumber(estWorkingLeak, 0)} €</td>
+          <td style="padding:6px;">Zahlungsziele verkürzen und Forderungen aktiv managen.</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  const actionPlan = `
+    <ul style="margin-left:18px; margin-top:8px;">
+      <li>Konvertieren Sie die Top 3 Leaks in einen 30-Tage-Verbesserungsplan mit klaren Zielen.</li>
+      <li>Definieren Sie pro Maßnahme einen Owner, ein Sparziel (in €) und einen Umsetzungstermin.</li>
+      <li>Überprüfen Sie nach 30 Tagen den Effekt auf Profit/Stunde und Deckungsbeitrag.</li>
+    </ul>
+    <p style="margin-top:10px; color:#bbb;">
+      Entscheidungregel: Preis erhöhen, Zeitinput reduzieren, Direktkosten senken, automatisieren, delegieren oder Angebote mit dauerhaft negativem Beitrag einstellen.
+    </p>
+  `;
+
+  const reportGauges = `
+    <h3 style="color:#d4af37; margin:30px 0 10px 0;">6. Gauge Übersicht</h3>
+
+    <div class="category-gauges">
+      <h3 class="subsection-title">Leakage-Kategorien Analyse</h3>
+      <div class="gauge-container">
+        <div class="gauge-box">
+          <h3>Preisgestaltung</h3>
+          <div class="gauge" id="report-gauge-pricing"></div>
+          <div class="gauge-status" id="report-status-pricing">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Zeiteffizienz</h3>
+          <div class="gauge" id="report-gauge-zeit"></div>
+          <div class="gauge-status" id="report-status-zeit">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Kostenmanagement</h3>
+          <div class="gauge" id="report-gauge-kosten"></div>
+          <div class="gauge-status" id="report-status-kosten">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Profitabilität</h3>
+          <div class="gauge" id="report-gauge-profit"></div>
+          <div class="gauge-status" id="report-status-profit">Optimal</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Strategic Gap</h3>
+          <div class="gauge" id="report-gauge-strategic"></div>
+          <div class="gauge-status" id="report-status-strategic">Optimal</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="revenue-gauges">
+      <h3 class="subsection-title">Umsatz & Gewinn Metriken</h3>
+      <div class="gauge-container">
+        <div class="gauge-box">
+          <h3>Umsatz/Stunde</h3>
+          <div class="gauge" id="report-gauge-umsatz-stunde"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Gewinn/Stunde</h3>
+          <div class="gauge" id="report-gauge-gewinn-stunde"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Bruttomarge</h3>
+          <div class="gauge" id="report-gauge-bruttomarge"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Umsatz/Monat</h3>
+          <div class="gauge" id="report-gauge-umsatz-monat"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Deckungsbeitrag</h3>
+          <div class="gauge" id="report-gauge-deckung"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Zeit/Monat</h3>
+          <div class="gauge" id="report-gauge-zeit-monat"></div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Umsatz/Stunde – Leistung vs Kategorie</h3>
+          <div class="gauge" id="report-gauge-umsatz-compare"></div>
+          <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
+        </div>
+
+        <div class="gauge-box">
+          <h3>Gewinn/Stunde – Leistung vs Kategorie</h3>
+          <div class="gauge" id="report-gauge-gewinn-compare"></div>
+          <div class="gauge-label">Leistung % vs Kategorie (100%)</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('reportContent').innerHTML = `
+    <h3 style="color:#d4af37; margin-bottom:10px;">1. Executive Summary</h3>
+    ${execSummary}
+
+    <h3 style="color:#d4af37; margin:30px 0 10px 0;">2. Key Metrics</h3>
+    ${keyMetrics}
+
+    <h3 style="color:#d4af37; margin:30px 0 10px 0;">3. Leakage Breakdown & Sparpotenzial</h3>
+    ${leakageBreakdown}
+
+    <h3 style="color:#d4af37; margin:30px 0 10px 0;">4. Top 3 Opportunities</h3>
+    ${top3Opportunities}
+
+    <h3 style="color:#d4af37; margin:30px 0 10px 0;">5. Action Plan</h3>
+    ${actionPlan}
+
+    ${reportGauges}
+  `;
+
+  renderReportGauges();
+}
+
+function showAddServiceModal() {
+  editingIndex = -1;
+  document.getElementById('modalTitle').textContent = 'Neue Leistung';
+  document.getElementById('modalServiceName').value = '';
+  document.getElementById('modalServicePrice').value = '';
+  document.getElementById('modalServiceCost').value = '';
+  document.getElementById('serviceModal').classList.add('active');
+}
+
+function showEditServiceModal(index) {
+  editingIndex = index;
+  const service = services[index];
+  document.getElementById('modalTitle').textContent = 'Leistung bearbeiten';
+  document.getElementById('modalServiceName').value = service.name;
+  document.getElementById('modalServicePrice').value = service.price;
+  document.getElementById('modalServiceCost').value = service.cost;
+  document.getElementById('serviceModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('serviceModal').classList.remove('active');
+}
+
+function saveService() {
+  const name  = document.getElementById('modalServiceName').value.trim();
+  const price = parseFloat(document.getElementById('modalServicePrice').value) || 0;
+  const cost  = parseFloat(document.getElementById('modalServiceCost').value) || 0;
+
+  if (name === '') {
+    alert('Bitte geben Sie einen Namen ein.');
+    return;
+  }
+
+  if (editingIndex >= 0) {
+    services[editingIndex] = {name, price, cost};
+  } else {
+    services.push({name, price, cost});
+  }
+
+  renderServiceList();
+  closeModal();
+}
+
+function deleteService(index) {
+  if (confirm('Möchten Sie diese Leistung wirklich löschen?')) {
+    services.splice(index, 1);
+    renderServiceList();
+  }
+}
+
+function renderServiceList() {
+  const list = document.getElementById('serviceList');
+  list.innerHTML = '';
+
+  services.forEach((service, index) => {
+    const item = document.createElement('div');
+    item.className = 'service-item';
+    item.innerHTML = `
+      <div class="info">
+        <h4>${service.name}</h4>
+        <p>Preis: ${formatGermanNumber(service.price, 0)} € | Dir.Kosten: ${formatGermanNumber(service.cost, 0)} €</p>
+      </div>
+      <div class="actions">
+        <button class="edit-btn" onclick="showEditServiceModal(${index})">✏️ Bearbeiten</button>
+        <button class="delete-btn" onclick="deleteService(${index})">🗑️ Löschen</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+document.getElementById('avgUmsatzKategorie').addEventListener('input', updateAllGauges);
+document.getElementById('avgGewinnKategorie').addEventListener('input', updateAllGauges);
+</script>
+</body>
+</html>
