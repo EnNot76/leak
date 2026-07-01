@@ -360,9 +360,219 @@ button.secondary-btn:hover { background: #4a4a4a; }
   margin-top: 20px;
 }
 
-@media print {
-  .header, .nav, .logout-btn, .primary-btn { display: none !important; }
+@page {
+  size: A4 portrait;
+  margin: 12mm 10mm 12mm 10mm;
 }
+
+@media print {
+  html, body {
+    width: 210mm;
+    min-height: 297mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10.5pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .login-container,
+  .header,
+  .nav,
+  .logout-btn,
+  .primary-btn,
+  #kundendaten,
+  #bewertung,
+  #dashboard,
+  #einstellungen,
+  .modal {
+    display: none !important;
+  }
+
+  .app-container,
+  .content,
+  #bericht,
+  #reportContent {
+    display: block !important;
+  }
+
+  .app-container {
+    width: 100%;
+    background: #ffffff !important;
+  }
+
+  .content {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #bericht {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #bericht .section-title {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-size: 18pt !important;
+    margin: 0 0 8mm 0 !important;
+  }
+
+  #reportContent {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #000000 !important;
+  }
+
+  #reportContent h3,
+  #reportContent .subsection-title {
+    color: #000000 !important;
+    text-shadow: none !important;
+    page-break-after: avoid;
+    break-after: avoid;
+    margin-top: 8mm !important;
+    margin-bottom: 3mm !important;
+  }
+
+  #reportContent p,
+  #reportContent li,
+  #reportContent td,
+  #reportContent th {
+    color: #000000 !important;
+  }
+
+  .results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 4mm !important;
+    margin: 4mm 0 6mm 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .result-box {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #999 !important;
+    border-left: 3px solid #666 !important;
+    box-shadow: none !important;
+    padding: 4mm !important;
+    border-radius: 3mm !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .result-box h4 {
+    color: #000000 !important;
+    font-size: 9pt !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .result-box .value {
+    color: #000000 !important;
+    font-size: 16pt !important;
+  }
+
+  .category-gauges,
+  .revenue-gauges {
+    margin: 6mm 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .gauge-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 4mm !important;
+    margin: 4mm 0 6mm 0 !important;
+    align-items: start !important;
+  }
+
+  .gauge-box {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #999 !important;
+    box-shadow: none !important;
+    border-radius: 3mm !important;
+    padding: 3.5mm !important;
+    min-height: 63mm !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .gauge-box h3 {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .gauge {
+    height: 42mm !important;
+    width: 100% !important;
+  }
+
+  .gauge svg {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .gauge-status,
+  .gauge-label {
+    color: #000000 !important;
+    font-size: 8.5pt !important;
+    margin-top: 1.5mm !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 3mm !important;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  th, td {
+    color: #000000 !important;
+    border-color: #999 !important;
+    font-size: 9pt !important;
+  }
+
+  ul {
+    margin-left: 5mm !important;
+  }
+
+  .gauge-box,
+  .result-box,
+  table,
+  ul,
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+}
+
 </style>
 </head>
 <body>
